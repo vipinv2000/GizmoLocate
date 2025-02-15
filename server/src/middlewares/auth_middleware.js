@@ -2,6 +2,9 @@ import jwt from 'jsonwebtoken'
 import chalk from 'chalk'
 import User from '../models/user_model.js'
 import Shop from '../models/shop_model.js';
+import { config } from 'dotenv';
+
+config()
 
 
   export const RequestInfo = (req, res, next) => {
@@ -17,7 +20,7 @@ export const UserPrivateRoute=async (req,res,next)=>{
         if(!token){
             return res.status(401).json({message:"Unauthorised-No token provided"})
         }
-        const decoded=jwt.verify(token,"123456")
+        const decoded=jwt.verify(token,process.env.JWT_SECRET)
 
         if (!decoded){
             return res.status(401).json({message:"Unauthorised -Inavlid token"})
@@ -46,7 +49,7 @@ export const ShopPrivateRoute=async (req,res,next)=>{
         if(!token){
             return res.status(401).json({message:"Unauthorised-No token provided"})
         }
-        const decoded=jwt.verify(token,"123456")
+        const decoded=jwt.verify(token,process.env.JWT_SECRET)
 
         if (!decoded){
             return res.status(401).json({message:"Unauthorised -Inavlid token"})

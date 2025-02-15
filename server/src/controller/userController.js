@@ -1,4 +1,4 @@
-import { generateToken } from '../lib/utils.js';
+import { calculate_total_from_userCart, generateToken } from '../lib/utils.js';
 import Cart from '../models/cart_model.js';
 import Product from '../models/product_model.js';
 import User from '../models/user_model.js';
@@ -170,15 +170,15 @@ export const viewCart = async (req, res) => {
         'shopProduct.products.productId',
         'productname price productimage'
       );
-    console.log(showCart);
-
-    if (!showCart) {
-      return res
+      
+      if (!showCart) {
+        return res
         .status(404)
         .json({ message: 'Cart not found', success: false });
-    }
-
-    return res.status(200).json({ showCart, success: true });
+      }
+      const cartTotal_price= calculate_total_from_userCart(showCart)
+      
+    return res.status(200).json({ showCart,total:cartTotal_price ,success: true });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Server error', success: false });
@@ -256,3 +256,6 @@ export const countChange = async (req, res) => {
     return res.status(500).json({ message: 'Server error', success: false });
   }
 };
+
+
+export const gotoorders=async(req,res)=>{}

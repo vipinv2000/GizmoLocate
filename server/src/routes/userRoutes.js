@@ -1,6 +1,6 @@
 import express from "express";
 import  {UserPrivateRoute} from '../middlewares/auth_middleware.js'
-import { addCart, countChange, login, logout, signup, viewCart } from "../controller/userController.js";
+import { addCart, countChange, gotoorders, login, logout, signup, viewCart } from "../controller/userController.js";
 
 
 const router = express.Router();
@@ -12,6 +12,7 @@ router.post("/logout",UserPrivateRoute, logout);
 router.get("/addCart/:productId/:shopId/:productName",UserPrivateRoute, addCart);
 router.get("/viewCart",UserPrivateRoute, viewCart);
 router.get("/countChange/:shopId/:productId/:quantityChange",UserPrivateRoute, countChange);
+router.get("/gotoorder/:shopId/:productId/:quantityChange",UserPrivateRoute, gotoorders);
 
 
 export default router

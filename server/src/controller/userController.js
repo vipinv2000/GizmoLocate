@@ -1,6 +1,9 @@
+import { formattedISTDateTime } from '../lib/indian_time.js';
 import { calculate_total_from_userCart, generateToken } from '../lib/utils.js';
 import Cart from '../models/cart_model.js';
+import Order from '../models/order_model.js';
 import Product from '../models/product_model.js';
+import Shop from '../models/shop_model.js';
 import User from '../models/user_model.js';
 import bcrypt from 'bcryptjs';
 
@@ -91,7 +94,7 @@ export const addCart = async (req, res) => {
   console.log(req.params, userId);
 
   try {
-    const product = await Product.findById(productId).select("quantity");
+    const product = await Product.findById(productId).select('quantity');
     if (!product) {
       return res
         .status(404)
@@ -170,15 +173,17 @@ export const viewCart = async (req, res) => {
         'shopProduct.products.productId',
         'productname price productimage'
       );
-      
-      if (!showCart) {
-        return res
+
+    if (!showCart) {
+      return res
         .status(404)
         .json({ message: 'Cart not found', success: false });
-      }
-      const cartTotal_price= calculate_total_from_userCart(showCart)
-      
-    return res.status(200).json({ showCart,total:cartTotal_price ,success: true });
+    }
+    const cartTotal_price = calculate_total_from_userCart(showCart);
+
+    return res
+      .status(200)
+      .json({ showCart, total: cartTotal_price, success: true });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Server error', success: false });
@@ -235,12 +240,13 @@ export const countChange = async (req, res) => {
     } else {
       isCart.shopProduct[shopIndex].products[productIndex].quantity -= 1;
       product.quantity += 1;
-      console.log(isCart.shopProduct[shopIndex].products[productIndex].quantity);
+      console.log(
+        isCart.shopProduct[shopIndex].products[productIndex].quantity
+      );
       if (isCart.shopProduct[shopIndex].products[productIndex].quantity === 0) {
         isCart.shopProduct[shopIndex].products.splice(productIndex, 1);
-        if( isCart.shopProduct[shopIndex].products.length === 0){
-        isCart.shopProduct.splice(shopIndex, 1);
-          
+        if (isCart.shopProduct[shopIndex].products.length === 0) {
+          isCart.shopProduct.splice(shopIndex, 1);
         }
       }
     }
@@ -257,5 +263,150 @@ export const countChange = async (req, res) => {
   }
 };
 
+export const userViewAuth = () => {
+  try {
+    const isAuth = req.user;
+    return res.status(201).json({ isAuth, success: true });
+  } catch (e) {
+    return res.status(500).json({ message: 'Server error', success: false });
+  }
+};
 
-export const gotoorders=async(req,res)=>{}
+export const gotoorders = async (req, res) => {
+  const userId = req.user._id;
+  try {
+    const cart = await Cart.findOne({ user: userId });
+    const populatedCart = await Cart.findOne({ user: userId })
+      .populate('shopProduct.shopId', 'shopname langitude longitude')
+      .populate(
+        'shopProduct.products.productId',
+        'productname price productimage'
+      );
+    if (!cart) {
+      return res
+        .status(404)
+        .json({ message: 'No cart found for ths user', success: false });
+    }
+    const TotalPrice = calculate_total_from_userCart(populatedCart);
+    const order = new Order({
+      totalPrice: TotalPrice,
+      user: userId, // Store user reference
+      shopProduct: cart.shopProduct, // Copy shop products from cart
+      Datetime: formattedISTDateTime,
+      Orderstatus: 'Pending',
+    });
+
+    await order.save();
+    return res.status(200).json({ success: true });
+  } catch (e) {
+    return res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+export const placeOrder = async (req, res) => {
+  const userId = req.user._id;
+  const { PaymentMode } = req.params;
+  try {
+    await Order.findOneAndUpdate(
+      { user: userId },
+      { OrderMethod: PaymentMode }
+    );
+    return res.status(200).json({ message: 'Order Placed', success: true });
+  } catch (e) {
+    return res.status(500).json({ message: 'Server Error' });
+  }
+};
+export const viewOrder = async (req, res) => {
+  const userId = req.user._id;
+  try {
+    const ViewOrders = await Order.findOne({ user: userId })
+      .populate('shopProduct.shopId')
+      .populate('shopProduct.products.productId');
+
+    const isOrdered = ViewOrders.shopProduct.filter(item => {
+      if (item.isDelivered === false) return item;
+    });
+    console.log(isOrdered);
+
+    if (isOrdered.length == 0) {
+      return res
+        .status(404)
+        .json({ message: 'No orders Found', success: false });
+    }
+    return res.status(200).json({ isOrdered, success: true });
+  } catch (e) {
+    return res.status(500).json({ message: 'Server Error' });
+  }
+};
+export const viewOrderHistory = async (req, res) => {
+  const userId = req.user._id;
+  try {
+    const ViewOrders = await Order.findOne({ user: userId })
+      .populate('shopProduct.shopId')
+      .populate('shopProduct.products.productId');
+
+    const isOrdered = ViewOrders.shopProduct.filter(item => {
+      if (item.isDelivered === true) return item;
+    });
+    console.log(isOrdered);
+
+    if (isOrdered.length == 0) {
+      return res
+        .status(404)
+        .json({ message: 'No orders Found', success: false });
+    }
+    return res.status(200).json({ isOrdered, success: true });
+  } catch (e) {
+    return res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+export const fetchAllLocation = async (req, res) => {
+  const { location } = req.query;
+  console.log('Requested location:', location);
+
+  try {
+    // Fetch shops matching the query (Case-insensitive)
+    const filteredShops = await Shop.find({
+      location: { $regex: new RegExp(`^${location}`, 'i') },
+    }); // ✅ Fetches all shop details
+
+    // Extract unique location names (ignoring case & spaces)
+    const uniqueLocations = [
+      ...new Set(filteredShops.map(shop => shop.location.trim().toLowerCase())),
+    ];
+
+    console.log('Filtered Shops:', filteredShops);
+    console.log('Unique Locations:', uniqueLocations);
+
+    res.json({
+      success: true,
+      locations: uniqueLocations, // ✅ Unique locations
+      shops: filteredShops, // ✅ Full shop details
+    });
+  } catch (e) {
+    console.error('Error fetching locations:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const listProducts = async (req, res) => {
+  const { shopId } = req.params;
+  try {
+    const products = await Product.find({ shop: shopId });
+    return res.status(200).json({ products, success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const listNearByLoc = async (req, res) => {
+  const { lat, lng } = req.params; // User's location
+
+  if (!lat || !lng) {
+    return res.status(400).json({ error: "Latitude and Longitude are required" });
+  }
+
+ 
+};
+

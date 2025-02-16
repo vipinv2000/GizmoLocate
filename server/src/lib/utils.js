@@ -17,6 +17,8 @@ export const generateToken = (id, res) => {
 };
 
 export const calculate_total_from_userCart= (cartItem)=>{
+  
+  
 
   try {
 
@@ -30,12 +32,14 @@ export const calculate_total_from_userCart= (cartItem)=>{
        acc+(  item2.productId.price * item2.quantity)
        ),0)
     ))
-    console.log(subTotal);
+   
     
     
     const TotalPrice= subTotal.reduce((acc,item3)=>{
       return acc+item3
     },0)
+    console.log(TotalPrice);
+    
      return TotalPrice
     
   } catch (e) {

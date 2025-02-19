@@ -7,6 +7,8 @@ import Order from '../models/order_model.js';
 
 export const signup = async (req, res) => {
   const { shopname, email, password } = req.body;
+  console.log(req.body);
+
   try {
     if (!shopname || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -121,12 +123,10 @@ export const completeOrder = async (req, res) => {
       user: UserOrders.user,
       products: UserOrders.shopProduct[shopIndex].products,
     };
-     UserOrders.shopProduct[shopIndex].isDelivered=true
+    UserOrders.shopProduct[shopIndex].isDelivered = true;
 
-     await UserOrders.save()
+    await UserOrders.save();
 
     return res.status(200).json(shopProducts);
   } catch (e) {}
 };
-
-

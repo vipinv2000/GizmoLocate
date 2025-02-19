@@ -5,14 +5,17 @@ import { ConnectDb } from './lib/db.js';
 import { RequestInfo } from './middlewares/auth_middleware.js';
 import userRoute from './routes/userRoutes.js';
 import shopRoute from './routes/shopRoute.js'
+import cors from 'cors'
 
 
 //middlewares
 const app = express();
+const  allowedOrgins=['http://localhost:5173']
 dotenv.config()
 app.use(express.json())
 app.use(cookieParser())
 app.use(RequestInfo)
+app.use(cors({origin:allowedOrgins,credentials:true}))
 
 //Routes
 

@@ -53,6 +53,7 @@ export const signup = async (req, res) => {
 };
 export const login = async (req, res) => {
   const { email, password } = req.body;
+  console.log(req.body);
   try {
     const user = await User.findOne({ email });
 
@@ -68,10 +69,15 @@ export const login = async (req, res) => {
     generateToken(user._id, res);
 
     res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      profilePic: user.profilePic,
+      success: true,
+      success: true,
+      message: 'succes',
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        profilePic: user.profilePic,
+      },
     });
   } catch (error) {
     console.log('Error in login controller', error.message);
@@ -263,10 +269,10 @@ export const countChange = async (req, res) => {
   }
 };
 
-export const userViewAuth = () => {
+export const userViewAuth = (req, res) => {
   try {
     const isAuth = req.user;
-    return res.status(201).json({ isAuth, success: true });
+    return res.status(201).json({ User: isAuth, success: true });
   } catch (e) {
     return res.status(500).json({ message: 'Server error', success: false });
   }
@@ -295,6 +301,8 @@ export const gotoorders = async (req, res) => {
       Datetime: formattedISTDateTime,
       Orderstatus: 'Pending',
     });
+
+    await Cart.deleteOne({ user: userId });
 
     await order.save();
     return res.status(200).json({ success: true });
@@ -368,12 +376,14 @@ export const fetchAllLocation = async (req, res) => {
   try {
     // Fetch shops matching the query (Case-insensitive)
     const filteredShops = await Shop.find({
-      location: { $regex: new RegExp(`^${location}`, 'i') },
+      locationName: { $regex: new RegExp(`^${location}`, 'i') },
     }); // ✅ Fetches all shop details
 
     // Extract unique location names (ignoring case & spaces)
     const uniqueLocations = [
-      ...new Set(filteredShops.map(shop => shop.location.trim().toLowerCase())),
+      ...new Set(
+        filteredShops.map(shop => shop.locationName.trim().toLowerCase())
+      ),
     ];
 
     console.log('Filtered Shops:', filteredShops);
@@ -404,9 +414,8 @@ export const listNearByLoc = async (req, res) => {
   const { lat, lng } = req.params; // User's location
 
   if (!lat || !lng) {
-    return res.status(400).json({ error: "Latitude and Longitude are required" });
+    return res
+      .status(400)
+      .json({ error: 'Latitude and Longitude are required' });
   }
-
- 
 };
-

@@ -1,3 +1,4 @@
+import cloudinary from '../lib/cloudinary.js';
 import { formattedISTDateTime } from '../lib/indian_time.js';
 import { calculate_total_from_userCart, generateToken } from '../lib/utils.js';
 import Cart from '../models/cart_model.js';
@@ -6,15 +7,19 @@ import Product from '../models/product_model.js';
 import Shop from '../models/shop_model.js';
 import User from '../models/user_model.js';
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+import Wishlist from '../models/wishlIst_model.js';
+
+dotenv.config();
 
 export const signup = async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { fullName, email, password, profilePic } = req.body;
   try {
     if (!fullName || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    if (password.length < 3) {
+    if (password.length < 6) {
       return res
         .status(400)
         .json({ message: 'Password must be at least 6 characters' });
@@ -26,11 +31,20 @@ export const signup = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    let imageUrl;
+    if (profilePic) {
+      const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+        folder: 'profile_pics',
+        resource_type: 'image',
+      });
+      imageUrl = uploadResponse.secure_url;
+    }
 
     const newUser = new User({
       fullName,
       email,
       password: hashedPassword,
+      profilePic: imageUrl,
     });
 
     if (newUser) {
@@ -70,8 +84,7 @@ export const login = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      success: true,
-      message: 'succes',
+      message: 'success',
       user: {
         _id: user._id,
         fullName: user.fullName,
@@ -91,6 +104,19 @@ export const logout = async (req, res) => {
   } catch (error) {
     console.log('Error in logout controller', error.message);
     res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const getUserById = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'No user found' });
+    }
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error('Error in getUserById controllerssss:', error.message);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
 
@@ -272,6 +298,8 @@ export const countChange = async (req, res) => {
 export const userViewAuth = (req, res) => {
   try {
     const isAuth = req.user;
+    console.log(isAuth);
+
     return res.status(201).json({ User: isAuth, success: true });
   } catch (e) {
     return res.status(500).json({ message: 'Server error', success: false });
@@ -310,6 +338,66 @@ export const gotoorders = async (req, res) => {
     return res.status(500).json({ message: 'Server Error' });
   }
 };
+
+export const AddWishlist = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const userId = req.user._id;
+
+    let wishlist = await Wishlist.findOne({ user: userId });
+
+    if (!wishlist) {
+      wishlist = new Wishlist({ user: userId, products: [] });
+    }
+
+    if (!wishlist.products.includes(productId)) {
+      wishlist.products.push(productId);
+      await wishlist.save();
+      return res.status(201).json({ message: 'Product added to wishlist' });
+    }
+
+    res.status(400).json({ message: 'Product already in wishlist' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const RemoveWishlist = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const userId = req.user._id;
+
+    const wishlist = await Wishlist.findOne({ user: userId });
+
+    if (!wishlist) {
+      return res.status(404).json({ message: 'Wishlist not found' });
+    }
+
+    wishlist.products = wishlist.products.filter(
+      item => item.toString() !== productId
+    );
+
+    await wishlist.save();
+    res.status(200).json({ message: 'Product removed from wishlist' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const ListWishlist =async(req,res)=>{
+  const userId=req.user._id
+  try {
+    const wishlist = await Wishlist.findOne({ user: userId}).populate('products');
+
+    if (!wishlist) {
+      return res.status(404).json({ message: 'Wishlist not found' });
+    }
+
+    res.status(200).json(wishlist.products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
 
 export const placeOrder = async (req, res) => {
   const userId = req.user._id;

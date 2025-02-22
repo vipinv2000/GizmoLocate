@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import {config} from 'dotenv'  
+import Admin from '../models/admin_model.js';
 
 
 config()
@@ -48,4 +49,22 @@ export const calculate_total_from_userCart= (cartItem)=>{
   }
 
 
+}
+
+export const adminSignUp=async(req,res,next)=>{
+  console.log("Calling");
+  
+
+  const check =await Admin.find()
+  console.log(check.length);
+  
+
+  if(check.length==0){
+      const admin= await Admin.create({
+    fullName:"Gizmolocate Admin",
+    username:"admin",
+    password:"123456"
+  })
+}
+next()
 }

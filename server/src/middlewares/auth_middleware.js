@@ -35,6 +35,8 @@ export const UserPrivateRoute=async (req,res,next)=>{
             return res.status(401).json({message:"User not found"})
         }
         req.user=user
+        console.log(req.user);
+        
         next()
     } catch (e) {
         console.log("Error in UserPrivateRoute middleware: ", e.message);

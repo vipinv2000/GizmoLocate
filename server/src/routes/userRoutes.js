@@ -2,14 +2,18 @@ import express from 'express';
 import { UserPrivateRoute } from '../middlewares/auth_middleware.js';
 import {
   addCart,
+  AddWishlist,
   countChange,
   fetchAllLocation,
+  getUserById,
   gotoorders,
   listNearByLoc,
   listProducts,
+  ListWishlist,
   login,
   logout,
   placeOrder,
+  RemoveWishlist,
   signup,
   userViewAuth,
   viewCart,
@@ -28,6 +32,7 @@ router.get(
   addCart
 );
 router.get('/viewCart', UserPrivateRoute, viewCart);
+router.get('/userid',UserPrivateRoute,getUserById);
 router.get('/userViewAuth', UserPrivateRoute, userViewAuth);
 router.get(
   '/countChange/:shopId/:productId/:quantityChange',
@@ -35,6 +40,9 @@ router.get(
   countChange
 );
 router.get('/gotoorder', UserPrivateRoute, gotoorders);
+router.post('/addwishlist/:productId', UserPrivateRoute, AddWishlist);
+router.delete('/removewishlist/:productId', UserPrivateRoute, RemoveWishlist);
+router.get('/mywishlist', UserPrivateRoute, ListWishlist);
 router.get('/placeOrder/:PaymentMode', UserPrivateRoute, placeOrder);
 router.get('/viewOrder', UserPrivateRoute, viewOrder);
 router.get('/viewOrderHistory', UserPrivateRoute, viewOrderHistory);

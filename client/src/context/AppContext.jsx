@@ -10,7 +10,7 @@ export const AppContextProvider = ({ children }) => {
   const checkAuth = async () => {
     try {
       const { data } = await Axios.get('user/userViewAuth');
-      console.log(data);
+      console.log('fefgerfg',data);
 
       if (data.success) {
         setIsAuth(true);

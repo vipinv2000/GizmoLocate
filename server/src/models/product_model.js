@@ -8,6 +8,9 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String
   },
+  productType: {
+    type: String
+  },
   modelnumber: {
     type: String,
     required: true
@@ -17,7 +20,6 @@ const productSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  
   price: {
     type: Number,
     required: true,
@@ -29,9 +31,9 @@ const productSchema = new mongoose.Schema({
   productimage: {
     type: String // Store image URL or file path
   },
-  shop:{
-    type:Schema.Types.ObjectId,
-    ref:"Shops",
+  shop: {
+    type: Schema.Types.ObjectId,
+    ref: "Shops",
   }
 });
 

@@ -199,6 +199,8 @@ export const addCart = async (req, res) => {
 
 export const viewCart = async (req, res) => {
   const userId = req.user._id;
+  console.log(userId);
+  
 
   try {
     const showCart = await Cart.findOne({ user: userId })
@@ -213,6 +215,8 @@ export const viewCart = async (req, res) => {
         .status(404)
         .json({ message: 'Cart not found', success: false });
     }
+    console.log(showCart);
+    
     const cartTotal_price = calculate_total_from_userCart(showCart);
 
     return res
@@ -386,10 +390,10 @@ export const RemoveWishlist = async (req, res) => {
   }
 };
 
-export const ListWishlist =async(req,res)=>{
-  const userId=req.user._id
+export const ListWishlist = async (req, res) => {
+  const userId = req.user._id
   try {
-    const wishlist = await Wishlist.findOne({ user: userId}).populate('products');
+    const wishlist = await Wishlist.findOne({ user: userId }).populate('products');
 
     if (!wishlist) {
       return res.status(404).json({ message: 'Wishlist not found' });
@@ -509,3 +513,64 @@ export const listNearByLoc = async (req, res) => {
       .json({ error: 'Latitude and Longitude are required' });
   }
 };
+
+export const productSearch = async (req, res) => {
+  const { searchkey } = req.params;
+
+  try {
+    if (!searchkey) {
+      return res.status(400).json({ error: true, message: "Search key is required" });
+    }
+
+    const regex = new RegExp(searchkey, 'i');
+
+    const filteredProducts = await Product.find({
+      $or: [
+        { productType: { $regex: regex } },
+        { productname: { $regex: regex } }
+      ]
+    });
+
+    console.log("Filtered products", filteredProducts);
+
+    const searchResult = [
+      ...new Set(
+        filteredProducts.flatMap(item => {
+          let matchedFields = [];
+          if (regex.test(item.productname)) matchedFields.push(item.productname);
+          if (regex.test(item.productType)) matchedFields.push(item.productType);
+          return matchedFields;
+        })
+      )
+    ];
+
+    return res.status(200).json({ success: true, searchResult });
+
+  } catch (e) {
+    console.error("Error in product search:", e);
+    return res.status(500).json({ error: true, message: "Internal server error" });
+  }
+};
+
+export const giveSearchResult = async (req, res) => {
+  const { item } = req.params;
+  try {
+    const result = await Product.find({
+      $or: [
+        { productType: item },
+        { productname: item }
+      ]
+    })
+
+    console.log("Result", result);
+    if (result.length === 0) {
+      return res.status(500).json({ success: false, message: "Product Not found due to miss-match" });
+    }
+
+    return res.status(200).json({ success: true, result });
+
+  } catch (e) {
+    return res.status(500).json({ error: true, message: "Internal server error" });
+  }
+}
+

@@ -18,6 +18,7 @@ export const UserPrivateRoute=async (req,res,next)=>{
     try {
         
         const token = req.cookies.jwt
+        console.log("Jwt secre",token);
         if(!token){
             return res.status(401).json({message:"Unauthorised-No token provided"})
         }
@@ -27,7 +28,7 @@ export const UserPrivateRoute=async (req,res,next)=>{
             return res.status(401).json({message:"Unauthorised -Inavlid token"})
         
         }
-        console.log(decoded);
+        //console.log(decoded);
         
 
         const user= await User.findOne({_id:decoded.id})

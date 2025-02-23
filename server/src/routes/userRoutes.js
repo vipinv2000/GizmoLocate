@@ -19,6 +19,8 @@ import {
   viewCart,
   viewOrder,
   viewOrderHistory,
+  productSearch,
+  giveSearchResult
 } from '../controller/userController.js';
 
 const router = express.Router();
@@ -32,7 +34,7 @@ router.get(
   addCart
 );
 router.get('/viewCart', UserPrivateRoute, viewCart);
-router.get('/userid',UserPrivateRoute,getUserById);
+router.get('/userid', UserPrivateRoute, getUserById);
 router.get('/userViewAuth', UserPrivateRoute, userViewAuth);
 router.get(
   '/countChange/:shopId/:productId/:quantityChange',
@@ -46,8 +48,10 @@ router.get('/mywishlist', UserPrivateRoute, ListWishlist);
 router.get('/placeOrder/:PaymentMode', UserPrivateRoute, placeOrder);
 router.get('/viewOrder', UserPrivateRoute, viewOrder);
 router.get('/viewOrderHistory', UserPrivateRoute, viewOrderHistory);
-router.get("/fetchAllLocation",UserPrivateRoute ,fetchAllLocation);
-router.get("/listProducts/:shopId",UserPrivateRoute ,listProducts);
-router.get("/listNearByLoc/:lat/:lng",UserPrivateRoute ,listNearByLoc);
+router.get("/fetchAllLocation", UserPrivateRoute, fetchAllLocation);
+router.get("/listProducts/:shopId", UserPrivateRoute, listProducts);
+router.get("/listNearByLoc/:lat/:lng", UserPrivateRoute, listNearByLoc);
+router.get("/productSearch/:searchkey", UserPrivateRoute, productSearch)
+router.get("/giveSearchResult/:item", UserPrivateRoute, giveSearchResult)
 
 export default router;

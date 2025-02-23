@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Eye, EyeOff, Lock, Mail, User, Camera } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, Camera, MapPin, Phone } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext.jsx';
 import toast from 'react-hot-toast';
@@ -11,6 +11,8 @@ const UserSignUp = () => {
     fullName: '',
     email: '',
     password: '',
+    locationName:'',
+    phoneNumber:'',
     profilePic:null,
   });
 
@@ -40,6 +42,8 @@ const UserSignUp = () => {
     e.preventDefault();
     if (!formData.fullName.trim()) return toast.error("Full name is required");
     if (!formData.email.trim()) return toast.error("Email is required");
+    if (!formData.locationName.trim()) return toast.error("location is required");
+    if (!formData.phoneNumber.trim()) return toast.error("Phonenumber is required");
    
     if (!formData.password) return toast.error("Password is required");
     if (formData.password.length < 6) return toast.error("Password must be at least 6 characters");
@@ -115,6 +119,36 @@ const UserSignUp = () => {
                 value={formData.fullName}
                 onChange={e =>
                   setFormData({ ...formData, fullName: e.target.value })
+                }
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-700 font-medium">Address</label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 size-5" />
+              <input
+                type="text"
+                className="w-full h-12 border border-gray-300 rounded-lg pl-10 pr-3 focus:ring-2 focus:ring-blue-500 transition"
+                placeholder="Place,City"
+                value={formData.locationName}
+                onChange={e =>
+                  setFormData({ ...formData, locationName: e.target.value })
+                }
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-700 font-medium">Phonenumber</label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 size-5" />
+              <input
+                type="text"
+                className="w-full h-12 border border-gray-300 rounded-lg pl-10 pr-3 focus:ring-2 focus:ring-blue-500 transition"
+                placeholder="+9999999999"
+                value={formData.phoneNumber}
+                onChange={e =>
+                  setFormData({ ...formData, phoneNumber: e.target.value })
                 }
               />
             </div>

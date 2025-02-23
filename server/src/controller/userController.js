@@ -13,9 +13,9 @@ import Wishlist from '../models/wishlIst_model.js';
 dotenv.config();
 
 export const signup = async (req, res) => {
-  const { fullName, email, password, profilePic } = req.body;
+  const { fullName, email, password, profilePic,locationName,phoneNumber } = req.body;
   try {
-    if (!fullName || !email || !password) {
+    if (!fullName || !email || !password || !locationName || !phoneNumber) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -43,6 +43,8 @@ export const signup = async (req, res) => {
     const newUser = new User({
       fullName,
       email,
+      locationName,
+      phoneNumber,
       password: hashedPassword,
       profilePic: imageUrl,
     });

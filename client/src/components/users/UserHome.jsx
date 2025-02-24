@@ -18,7 +18,7 @@ import {
   Shield,
   CreditCard,
 } from 'lucide-react';
-import { SearchContextProvide } from '../../context/SearchContext.jsx';
+import { SearchContextProvide } from '../../context/Search&CartContext.jsx';
 import Searchproducts from './Search.jsx';
 
 const UserHome = () => {
@@ -87,9 +87,8 @@ const UserHome = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 ${
-                activeTab === item.id ? 'bg-gray-50 text-gray-900' : ''
-              }`}
+              className={`w-full flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 ${activeTab === item.id ? 'bg-gray-50 text-gray-900' : ''
+                }`}
             >
               <item.icon className="h-5 w-5 mr-3" />
               {item.name}
@@ -218,13 +217,12 @@ const UserHome = () => {
                           {order.amount}
                         </span>
                         <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.status === 'Delivered'
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${order.status === 'Delivered'
                               ? 'bg-green-100 text-green-800'
                               : order.status === 'In Transit'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
                         >
                           {order.status}
                         </span>

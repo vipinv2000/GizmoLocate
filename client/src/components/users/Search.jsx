@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Searchcontext } from '../../context/SearchContext';
+import { Searchcontext } from '../../context/Search&CartContext';
 import { Axios } from '../../utils/Axiox';
 import { IoSearch } from "react-icons/io5";
 
@@ -18,8 +18,12 @@ const Searchproducts = () => {
         const timer = setTimeout(() => {
             if (productSearch[searchResult]) {
                 setSearchInfo(productSearch[searchResult]);
+                console.log(true);
+
             } else {
                 searchQuery();
+                console.log(false);
+
             }
         }, 200);
 
@@ -29,6 +33,8 @@ const Searchproducts = () => {
     const searchQuery = async () => {
         try {
             const result = await Axios.get(`/user/productSearch/${searchResult}`);
+            console.log(result);
+
             UpdateProductSearch(searchResult, result.data.searchResult || []);
             setSearchInfo(result.data.searchResult || []);
         } catch (error) {
@@ -36,10 +42,10 @@ const Searchproducts = () => {
         }
     };
 
-    const sendSearchResult = async(result) => {
-        const {data} = await Axios.get(`/user/giveSearchResult/${result}`);
+    const sendSearchResult = async (result) => {
+        const { data } = await Axios.get(`/user/giveSearchResult/${result}`);
         console.log(data.result)
-        
+
     }
 
     return (
@@ -67,7 +73,7 @@ const Searchproducts = () => {
                             </div>
                         ) : (
                             searchInfo.map((product, index) => (
-                                <div className='w-full flex gap-3 hover:bg-gray-100 px-5 py-2' key={index} onClick={()=>sendSearchResult(product)}>
+                                <div className='w-full flex gap-3 hover:bg-gray-100 px-5 py-2' key={index} onClick={() => sendSearchResult(product)}>
                                     <IoSearch className='text-gray-400 size-5' />
                                     <h1>{product}</h1>
                                 </div>

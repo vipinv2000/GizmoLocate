@@ -20,7 +20,8 @@ import {
   viewOrder,
   viewOrderHistory,
   productSearch,
-  giveSearchResult
+  giveSearchResult,
+  deleteCart
 } from '../controller/userController.js';
 
 const router = express.Router();
@@ -41,6 +42,8 @@ router.get(
   UserPrivateRoute,
   countChange
 );
+router.get('/deleteCart/:shopId/:productId',UserPrivateRoute,deleteCart)
+
 router.get('/gotoorder', UserPrivateRoute, gotoorders);
 router.post('/addwishlist/:productId', UserPrivateRoute, AddWishlist);
 router.delete('/removewishlist/:productId', UserPrivateRoute, RemoveWishlist);

@@ -10,6 +10,8 @@ import { Toaster } from 'react-hot-toast';
 import UserHome from './components/users/UserHome.jsx';
 import AdminLogin from './components/Admin/login.jsx';
 import AcceptShops from './components/Admin/AcceptShops.jsx';
+import ViewCart from './components/users/ViewCart.jsx';
+import { CartContextProvider } from './context/Search&CartContext.jsx';
 
 // Usage
 const App = () => {
@@ -25,13 +27,16 @@ const App = () => {
           element={isAuth ? <Navigate to="/" /> : <ShopLogin />}
         />
         {/* <Route path="/user/signup"element={isAuth ? <Navigate to="/" /> : <UserSignUp />} /> */}
-        <Route path="/user/signup"element={isAuth ? <Navigate to="/user/home" /> : <UserSignUp />} /> 
-        <Route path="/user/login"element={isAuth ? <Navigate to="/user/home" /> : <UserLogin />} /> 
-        <Route path="/user/home"element={ <UserHome />} />
-        <Route path="/admin/login"element={ <AdminLogin />} />
-        <Route path="/admin/accpet-shops"element={ <AcceptShops />} />
+        <Route path="/user/signup" element={isAuth ? <Navigate to="/user/home" /> : <UserSignUp />} />
+        <Route path="/user/login" element={isAuth ? <Navigate to="/user/home" /> : <UserLogin />} />
+        <Route path="/user/home" element={<UserHome />} />
+        <Route path="/user/viewCart" element={<CartContextProvider> <ViewCart /> </CartContextProvider>} />
+
+
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/accpet-shops" element={<AcceptShops />} />
       </Routes>
-      <Toaster/>
+      <Toaster />
     </>
   );
 };

@@ -10,10 +10,11 @@ import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import Wishlist from '../models/wishlIst_model.js';
 
+
 dotenv.config();
 
 export const signup = async (req, res) => {
-  const { fullName, email, password, profilePic,locationName,phoneNumber } = req.body;
+  const { fullName, email, password, profilePic, locationName, phoneNumber } = req.body;
   try {
     if (!fullName || !email || !password || !locationName || !phoneNumber) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -200,14 +201,14 @@ export const addCart = async (req, res) => {
 export const viewCart = async (req, res) => {
   const userId = req.user._id;
   console.log(userId);
-  
+
 
   try {
     const showCart = await Cart.findOne({ user: userId })
-      .populate('shopProduct.shopId', 'shopname langitude longitude')
+      .populate('shopProduct.shopId', 'shopname location phonenumber')
       .populate(
         'shopProduct.products.productId',
-        'productname price productimage'
+        'productname price productimage category productType'
       );
 
     if (!showCart) {
@@ -215,8 +216,8 @@ export const viewCart = async (req, res) => {
         .status(404)
         .json({ message: 'Cart not found', success: false });
     }
-    console.log(showCart);
-    
+    console.log("Car itemss", showCart);
+
     const cartTotal_price = calculate_total_from_userCart(showCart);
 
     return res
@@ -522,8 +523,10 @@ export const productSearch = async (req, res) => {
       return res.status(400).json({ error: true, message: "Search key is required" });
     }
 
-    const regex = new RegExp(searchkey, 'i');
+    const regex = new RegExp(searchkey, 'i'); // Matches anywhere
+    const regexStart = new RegExp(`^${searchkey}`, 'i'); // Matches words starting with searchkey
 
+    // Fetch all matching products
     const filteredProducts = await Product.find({
       $or: [
         { productType: { $regex: regex } },
@@ -531,26 +534,42 @@ export const productSearch = async (req, res) => {
       ]
     });
 
-    console.log("Filtered products", filteredProducts);
+    console.log("Filtered products:", filteredProducts);
 
-    const searchResult = [
-      ...new Set(
-        filteredProducts.flatMap(item => {
-          let matchedFields = [];
-          if (regex.test(item.productname)) matchedFields.push(item.productname);
-          if (regex.test(item.productType)) matchedFields.push(item.productType);
-          return matchedFields;
-        })
-      )
-    ];
+    // Categorize products based on priority
+    let priorityFirst = [];
+    let prioritySecond = [];
+    let priorityLast = [];
 
-    return res.status(200).json({ success: true, searchResult });
+    filteredProducts.forEach((item) => {
+      const nameMatchesStart = regexStart.test(item.productname);
+      const typeMatchesStart = regexStart.test(item.productType);
+      const nameMatches = regex.test(item.productname);
+      const typeMatches = regex.test(item.productType);
+
+      if (nameMatchesStart) {
+        priorityFirst.push(item.productname);
+      } else if (typeMatchesStart) {
+        prioritySecond.push(item.productType);
+      } else {
+        if (nameMatches) priorityLast.push(item.productname);
+        if (typeMatches) priorityLast.push(item.productType);
+      }
+    });
+
+    // Remove duplicates & merge results
+    const searchResult = [...new Set([...priorityFirst, ...prioritySecond, ...priorityLast])];
+
+    console.log("✅ Prioritized Search Result:", searchResult);
+
+    return res.status(200).json({ searchResult: searchResult, success: true }); // Return only the array
 
   } catch (e) {
-    console.error("Error in product search:", e);
+    console.error("❌ Error in product search:", e);
     return res.status(500).json({ error: true, message: "Internal server error" });
   }
 };
+
 
 export const giveSearchResult = async (req, res) => {
   const { item } = req.params;
@@ -573,4 +592,58 @@ export const giveSearchResult = async (req, res) => {
     return res.status(500).json({ error: true, message: "Internal server error" });
   }
 }
+
+export const deleteCart = async (req, res) => {
+  const { shopId, productId } = req.params;
+  const userId = req.user._id;
+
+  try {
+    const userCart = await Cart.findOne({ user: userId });
+
+    if (!userCart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+
+    let shopIndex = userCart.shopProduct.findIndex(
+      shop => shop.shopId.toString() === shopId
+    );
+
+    if (shopIndex === -1) {
+      return res.status(404).json({ message: "Shop not found in cart" });
+    }
+
+    let productIndex = userCart.shopProduct[shopIndex].products.findIndex(
+      pro => pro.productId.toString() === productId
+    );
+
+
+    console.log("Shop index",shopIndex,"ProductIndex",productIndex);
+    
+    if (productIndex === -1) {
+      return res.status(404).json({ message: "Product not found in cart" });
+    }
+
+    const cartQuantity = userCart.shopProduct[shopIndex].products[productIndex].quantity;
+
+    await Product.updateOne(
+      { _id: productId },
+      { $inc: { quantity: cartQuantity } }
+    );
+
+    userCart.shopProduct[shopIndex].products.splice(productIndex, 1);
+
+    if (userCart.shopProduct[shopIndex].products.length === 0) {
+      userCart.shopProduct.splice(shopIndex, 1);
+    }
+
+    await userCart.save();
+
+    res.status(200).json({ message: "Product removed from cart successfully",success:true });
+
+  } catch (error) {
+    console.error("Error deleting cart item:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 

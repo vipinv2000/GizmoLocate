@@ -8,5 +8,10 @@
 
 p {
     font-family: "Outfit", serif;
-   
+
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar for Chrome, Safari */
 }

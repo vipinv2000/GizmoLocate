@@ -35,7 +35,6 @@ export const CartContextProvider = ({ children }) => {
 
         try {
             const { data } = await Axios.get('/user/viewCart');
-            console.log("data azaddd", data);
             setCartedItem(data.showCart)
             setTotal(data.total)
         } catch (e) {

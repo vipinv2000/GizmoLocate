@@ -33,7 +33,7 @@ const productSchema = new mongoose.Schema({
   },
   shop: {
     type: Schema.Types.ObjectId,
-    ref: "Shops",
+    ref: "Shop",
   }
 });
 

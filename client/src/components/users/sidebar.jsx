@@ -16,8 +16,8 @@ const User_Sidebar = () => {
                     { name: 'Profile', icon: User, id: 'profile', path: '/user/profile' },
                     { name: 'Orders', icon: Package, id: 'orders', path: '/user/orders' },
                     { name: 'Wishlist', icon: Heart, id: 'wishlist', path: '/user/wishlist' },
-                    { name: 'Cart', icon: ShoppingCart, id: 'cart', path: '/user/ViewCart' },
-                    { name: 'Settings', icon: Settings, id: 'settings', path: '' },
+                    { name: 'Cart', icon: ShoppingCart, id: 'cart', path: '/user/viewCart' },
+                    { name: 'Settings', icon: Settings, id: 'settings', path: '/user/settings' },
                 ].map(item => (
                     <button
                         key={item.id}

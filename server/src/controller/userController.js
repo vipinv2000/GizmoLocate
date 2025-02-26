@@ -519,6 +519,7 @@ export const listNearByLoc = async (req, res) => {
 
 export const productSearch = async (req, res) => {
   const { searchkey } = req.params;
+  const { locationName } = req.user;
 
   try {
     if (!searchkey) {
@@ -529,14 +530,17 @@ export const productSearch = async (req, res) => {
     const regexStart = new RegExp(`^${searchkey}`, 'i'); // Matches words starting with searchkey
 
     // Fetch all matching products
-    const filteredProducts = await Product.find({
+    const AllProducts = await Product.find({
       $or: [
         { productType: { $regex: regex } },
         { productname: { $regex: regex } }
       ]
-    });
+    }).populate("shop")
 
-    console.log("Filtered products:", filteredProducts);
+    const filteredProducts = AllProducts.filter(item => {
+      console.log("Checking Shop:", item.shop.locationName, "Against User Location:", locationName);
+      return item.shop?.locationName?.trim().toLowerCase() === locationName.trim().toLowerCase();
+    });
 
     // Categorize products based on priority
     let priorityFirst = [];
@@ -650,13 +654,19 @@ export const deleteCart = async (req, res) => {
 
 export const getProducts = async (req, res) => {
   const userId = req.user._id;
+  const { locationName } = req.user;
 
   try {
-    const productslist = await Product.find();
+    const AllProducts = await Product.find().populate("shop")
 
-    if (productslist.length == 0) {
+    if (AllProducts.length == 0) {
       return res.status(404).json({ message: "Product not found " });
     }
+
+    const productslist = AllProducts.filter(item => {
+      console.log("Checking Shop:", item.shop.locationName, "Against User Location:", locationName);
+      return item.shop?.locationName?.trim().toLowerCase() === locationName.trim().toLowerCase();
+    });
 
     const wishlist = await Wishlist.findOne({ user: userId });
 
@@ -672,6 +682,8 @@ export const getProducts = async (req, res) => {
     res.status(200).json({ products: wishedProducts, success: true });
 
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({ message: "Server error" });
   }
 }
@@ -688,4 +700,30 @@ export const getSingleproduct = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 }
+
+export const UpdateChooseLocation = async (req, res) => {
+  console.log("Azad");
+  
+  const { location } = req.params;
+  const userId = req.user._id;
+  console.log(location);
+  
+
+  try {
+    const update = await User.updateOne(
+      { _id: userId },
+      { $set: { locationName: location } }
+    );
+
+    if (update.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ message: `Now you location ${location}` });
+  } catch (error) {
+    console.error("Error updating location:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 

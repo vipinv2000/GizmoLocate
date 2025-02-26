@@ -1,13 +1,14 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { SearchContextProvide } from '../../context/Search&CartContext'
 import Searchproducts from './Search'
-import { Bell, Menu, User } from 'lucide-react'
+import { ArrowBigRight, Bell, Menu, User } from 'lucide-react'
 import { AppContext } from '../../context/AppContext'
+import { useNavigate } from 'react-router-dom'
 
 const Navbar = () => {
 
-    const { toggleMenu, setToggleMenu, ennableSearchbar } = useContext(AppContext)
-
+    const { toggleMenu, setToggleMenu, ennableSearchbar, isAuth, user } = useContext(AppContext)
+    const navigate = useNavigate()
 
     return (
 
@@ -17,7 +18,14 @@ const Navbar = () => {
                     <button className=" hover:bg-gray-100 rounded-full">
                         <Menu className="h-6 w-6 text-gray-600" onClick={() => setToggleMenu(!toggleMenu)} />
                     </button>
-                    <h2 className="text-2xl font-bold text-gray-900">GizmoLocate</h2>
+                    <div className='h-16 flex flex-col justify-end'>
+                        <h2 className="text-2xl font-bold text-gray-900 m-0 p-0">GizmoLocate</h2>
+                        <div className='flex items-center  gap-1 cursor-pointer' onClick={()=>navigate('/user/settings')}>
+                            <p className='text-[12px] m-0 p-0 text-red-700'>{user?.locationName} </p>
+                            <ArrowBigRight className="w-3 h-3 text-red-700" />
+                        </div>
+                    </div>
+
                 </div>
                 <div className='w-[50%]'>{
                     ennableSearchbar &&

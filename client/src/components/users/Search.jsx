@@ -1,13 +1,15 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Searchcontext } from '../../context/SearchContext';
+import { Searchcontext } from '../../context/Search&CartContext';
 import { Axios } from '../../utils/Axiox';
 import { IoSearch } from "react-icons/io5";
+import { ProductContext } from '../../context/ProductContext';
 
 const Searchproducts = () => {
     const [searchResult, setSearchResult] = useState('');
     const [searchInfo, setSearchInfo] = useState([]);
     const [searchFocus, setSearchFocus] = useState(false);
     const { productSearch, UpdateProductSearch } = useContext(Searchcontext);
+    const { showProducts, setShowProducts, fetchedProducts, StorePrevSearcHProducts, productsHistory } = useContext(ProductContext);
 
     useEffect(() => {
         if (!searchResult.trim()) {
@@ -18,8 +20,12 @@ const Searchproducts = () => {
         const timer = setTimeout(() => {
             if (productSearch[searchResult]) {
                 setSearchInfo(productSearch[searchResult]);
+                console.log(true);
+
             } else {
                 searchQuery();
+                console.log(false);
+
             }
         }, 200);
 
@@ -29,29 +35,50 @@ const Searchproducts = () => {
     const searchQuery = async () => {
         try {
             const result = await Axios.get(`/user/productSearch/${searchResult}`);
+            console.log(result);
+
             UpdateProductSearch(searchResult, result.data.searchResult || []);
             setSearchInfo(result.data.searchResult || []);
         } catch (error) {
-            console.error("Error fetching search results:", error);
+            const errorMessage = error.response?.data?.message || "Something went wrong!";
+            console.log(errorMessage);
+
         }
     };
 
-    const sendSearchResult = async(result) => {
-        const {data} = await Axios.get(`/user/giveSearchResult/${result}`);
-        console.log(data.result)
-        
+    const sendSearchResult = async (result) => {
+        try {
+            if (productsHistory[result]) {
+                setShowProducts(productsHistory[result])
+                console.log("onceee",true);
+                
+            }
+            else {
+                const { data } = await Axios.get(`/user/giveSearchResult/${result}`);
+                console.log("clecked search REsult", data.result)
+                setShowProducts(data.result)
+                StorePrevSearcHProducts(result, data.result)
+                console.log("onceee",false);
+            }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Something went wrong!";
+            console.log(errorMessage);
+        }
+
     }
 
     return (
-        <div className='mt-7'>
+        <div>
             <div className='w-full relative' onMouseLeave={() => setSearchFocus(false)} onMouseEnter={() => setSearchFocus(true)}>
-                <div className='flex items-center justify-center gap-3 w-full h-[3.4rem] px-4 py-2.5 rounded-full ' style={{
-                    boxShadow:
-                        "rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 23px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset",
-                }}>
+                <div className='flex items-center justify-center gap-3 w-full h-[3.2rem] px-4 py-2.5 rounded-full border border-gray-200 '>
                     <IoSearch className='text-gray-400 size-5' />
                     <input
-                        onChange={(e) => setSearchResult(e.target.value)}
+                        onChange={(e) => {
+                            if (e.target.value === "") {
+                                setShowProducts(fetchedProducts)
+                            }
+                            setSearchResult(e.target.value)
+                        }}
                         value={searchResult}
                         className='flex items-center bg-transparent outline-none text-black w-full '
                         type="text"
@@ -67,7 +94,7 @@ const Searchproducts = () => {
                             </div>
                         ) : (
                             searchInfo.map((product, index) => (
-                                <div className='w-full flex gap-3 hover:bg-gray-100 px-5 py-2' key={index} onClick={()=>sendSearchResult(product)}>
+                                <div className='w-full flex gap-3 hover:bg-gray-100 px-5 py-2' key={index} onClick={() => sendSearchResult(product)}>
                                     <IoSearch className='text-gray-400 size-5' />
                                     <h1>{product}</h1>
                                 </div>

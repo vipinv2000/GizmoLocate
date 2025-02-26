@@ -10,10 +10,11 @@ import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import Wishlist from '../models/wishlIst_model.js';
 
+
 dotenv.config();
 
 export const signup = async (req, res) => {
-  const { fullName, email, password, profilePic,locationName,phoneNumber } = req.body;
+  const { fullName, email, password, profilePic, locationName, phoneNumber } = req.body;
   try {
     if (!fullName || !email || !password || !locationName || !phoneNumber) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -200,14 +201,14 @@ export const addCart = async (req, res) => {
 export const viewCart = async (req, res) => {
   const userId = req.user._id;
   console.log(userId);
-  
+
 
   try {
     const showCart = await Cart.findOne({ user: userId })
-      .populate('shopProduct.shopId', 'shopname langitude longitude')
+      .populate('shopProduct.shopId', 'shopname location phonenumber')
       .populate(
         'shopProduct.products.productId',
-        'productname price productimage'
+        'productname price productimage category productType'
       );
 
     if (!showCart) {
@@ -215,8 +216,8 @@ export const viewCart = async (req, res) => {
         .status(404)
         .json({ message: 'Cart not found', success: false });
     }
-    console.log(showCart);
-    
+    console.log("Car itemss", showCart);
+
     const cartTotal_price = calculate_total_from_userCart(showCart);
 
     return res
@@ -312,38 +313,41 @@ export const userViewAuth = (req, res) => {
   }
 };
 
-export const gotoorders = async (req, res) => {
+export const PlaceOrders = async (req, res) => {
   const userId = req.user._id;
+  const { PaymentMode } = req.params;
+
   try {
-    const cart = await Cart.findOne({ user: userId });
-    const populatedCart = await Cart.findOne({ user: userId })
-      .populate('shopProduct.shopId', 'shopname langitude longitude')
-      .populate(
-        'shopProduct.products.productId',
-        'productname price productimage'
-      );
+    const cart = await Cart.findOne({ user: userId }).populate([
+      { path: 'shopProduct.shopId', select: 'shopname langitude longitude' },
+      { path: 'shopProduct.products.productId', select: 'productname price productimage' }
+    ]);
+
     if (!cart) {
-      return res
-        .status(404)
-        .json({ message: 'No cart found for ths user', success: false });
+      return res.status(404).json({ message: 'No cart found for this user', success: false });
     }
-    const TotalPrice = calculate_total_from_userCart(populatedCart);
+
+    const TotalPrice = calculate_total_from_userCart(cart);
+
+
     const order = new Order({
       totalPrice: TotalPrice,
-      user: userId, // Store user reference
-      shopProduct: cart.shopProduct, // Copy shop products from cart
+      user: userId,
+      shopProduct: cart.shopProduct,
       Datetime: formattedISTDateTime,
       Orderstatus: 'Pending',
+      PaymentMethod: PaymentMode // Adding PaymentMode directly while placing the order
     });
 
+    await order.save();
     await Cart.deleteOne({ user: userId });
 
-    await order.save();
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ message: 'Order Placed', success: true });
   } catch (e) {
     return res.status(500).json({ message: 'Server Error' });
   }
 };
+
 
 export const AddWishlist = async (req, res) => {
   try {
@@ -360,9 +364,18 @@ export const AddWishlist = async (req, res) => {
       wishlist.products.push(productId);
       await wishlist.save();
       return res.status(201).json({ message: 'Product added to wishlist' });
+    } else if (wishlist.products.includes(productId)) {
+      wishlist.products = wishlist.products.filter(
+        item => item.toString() !== productId
+      );
+      await wishlist.save();
+      return res.status(201).json({ message: 'Product remove from wishlist' });
+    }
+    else {
+      await wishlist.save();
+      res.status(400).json({ message: 'Product already in wishlist' });
     }
 
-    res.status(400).json({ message: 'Product already in wishlist' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -405,41 +418,31 @@ export const ListWishlist = async (req, res) => {
   }
 }
 
-export const placeOrder = async (req, res) => {
-  const userId = req.user._id;
-  const { PaymentMode } = req.params;
-  try {
-    await Order.findOneAndUpdate(
-      { user: userId },
-      { OrderMethod: PaymentMode }
-    );
-    return res.status(200).json({ message: 'Order Placed', success: true });
-  } catch (e) {
-    return res.status(500).json({ message: 'Server Error' });
-  }
-};
+
+
 export const viewOrder = async (req, res) => {
   const userId = req.user._id;
+
   try {
-    const ViewOrders = await Order.findOne({ user: userId })
-      .populate('shopProduct.shopId')
-      .populate('shopProduct.products.productId');
+    const viewOrders = await Order.find({ user: userId })
+      .populate("shopProduct.shopId")
+      .populate("shopProduct.products.productId");
 
-    const isOrdered = ViewOrders.shopProduct.filter(item => {
-      if (item.isDelivered === false) return item;
-    });
-    console.log(isOrdered);
-
-    if (isOrdered.length == 0) {
-      return res
-        .status(404)
-        .json({ message: 'No orders Found', success: false });
+    if (!viewOrders || viewOrders.length === 0) {
+      return res.status(404).json({ success: false, message: "No orders found." });
     }
-    return res.status(200).json({ isOrdered, success: true });
-  } catch (e) {
-    return res.status(500).json({ message: 'Server Error' });
+
+    console.log(viewOrders);
+
+    return res.status(200).json({ success: true, isOrdered: viewOrders });
+
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
 export const viewOrderHistory = async (req, res) => {
   const userId = req.user._id;
   try {
@@ -516,41 +519,63 @@ export const listNearByLoc = async (req, res) => {
 
 export const productSearch = async (req, res) => {
   const { searchkey } = req.params;
+  const { locationName } = req.user;
 
   try {
     if (!searchkey) {
       return res.status(400).json({ error: true, message: "Search key is required" });
     }
 
-    const regex = new RegExp(searchkey, 'i');
+    const regex = new RegExp(searchkey, 'i'); // Matches anywhere
+    const regexStart = new RegExp(`^${searchkey}`, 'i'); // Matches words starting with searchkey
 
-    const filteredProducts = await Product.find({
+    // Fetch all matching products
+    const AllProducts = await Product.find({
       $or: [
         { productType: { $regex: regex } },
         { productname: { $regex: regex } }
       ]
+    }).populate("shop")
+
+    const filteredProducts = AllProducts.filter(item => {
+      console.log("Checking Shop:", item.shop.locationName, "Against User Location:", locationName);
+      return item.shop?.locationName?.trim().toLowerCase() === locationName.trim().toLowerCase();
     });
 
-    console.log("Filtered products", filteredProducts);
+    // Categorize products based on priority
+    let priorityFirst = [];
+    let prioritySecond = [];
+    let priorityLast = [];
 
-    const searchResult = [
-      ...new Set(
-        filteredProducts.flatMap(item => {
-          let matchedFields = [];
-          if (regex.test(item.productname)) matchedFields.push(item.productname);
-          if (regex.test(item.productType)) matchedFields.push(item.productType);
-          return matchedFields;
-        })
-      )
-    ];
+    filteredProducts.forEach((item) => {
+      const nameMatchesStart = regexStart.test(item.productname);
+      const typeMatchesStart = regexStart.test(item.productType);
+      const nameMatches = regex.test(item.productname);
+      const typeMatches = regex.test(item.productType);
 
-    return res.status(200).json({ success: true, searchResult });
+      if (nameMatchesStart) {
+        priorityFirst.push(item.productname);
+      } else if (typeMatchesStart) {
+        prioritySecond.push(item.productType);
+      } else {
+        if (nameMatches) priorityLast.push(item.productname);
+        if (typeMatches) priorityLast.push(item.productType);
+      }
+    });
+
+    // Remove duplicates & merge results
+    const searchResult = [...new Set([...priorityFirst, ...prioritySecond, ...priorityLast])];
+
+    console.log("✅ Prioritized Search Result:", searchResult);
+
+    return res.status(200).json({ searchResult: searchResult, success: true }); // Return only the array
 
   } catch (e) {
-    console.error("Error in product search:", e);
+    console.error("❌ Error in product search:", e);
     return res.status(500).json({ error: true, message: "Internal server error" });
   }
 };
+
 
 export const giveSearchResult = async (req, res) => {
   const { item } = req.params;
@@ -573,4 +598,132 @@ export const giveSearchResult = async (req, res) => {
     return res.status(500).json({ error: true, message: "Internal server error" });
   }
 }
+
+export const deleteCart = async (req, res) => {
+  const { shopId, productId } = req.params;
+  const userId = req.user._id;
+
+  try {
+    const userCart = await Cart.findOne({ user: userId });
+
+    if (!userCart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+
+    let shopIndex = userCart.shopProduct.findIndex(
+      shop => shop.shopId.toString() === shopId
+    );
+
+    if (shopIndex === -1) {
+      return res.status(404).json({ message: "Shop not found in cart" });
+    }
+
+    let productIndex = userCart.shopProduct[shopIndex].products.findIndex(
+      pro => pro.productId.toString() === productId
+    );
+
+
+    console.log("Shop index", shopIndex, "ProductIndex", productIndex);
+
+    if (productIndex === -1) {
+      return res.status(404).json({ message: "Product not found in cart" });
+    }
+
+    const cartQuantity = userCart.shopProduct[shopIndex].products[productIndex].quantity;
+
+    await Product.updateOne(
+      { _id: productId },
+      { $inc: { quantity: cartQuantity } }
+    );
+
+    userCart.shopProduct[shopIndex].products.splice(productIndex, 1);
+
+    if (userCart.shopProduct[shopIndex].products.length === 0) {
+      userCart.shopProduct.splice(shopIndex, 1);
+    }
+
+    await userCart.save();
+
+    res.status(200).json({ message: "Product removed from cart successfully", success: true });
+
+  } catch (error) {
+    console.error("Error deleting cart item:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getProducts = async (req, res) => {
+  const userId = req.user._id;
+  const { locationName } = req.user;
+
+  try {
+    const AllProducts = await Product.find().populate("shop")
+
+    if (AllProducts.length == 0) {
+      return res.status(404).json({ message: "Product not found " });
+    }
+
+    const productslist = AllProducts.filter(item => {
+      console.log("Checking Shop:", item.shop.locationName, "Against User Location:", locationName);
+      return item.shop?.locationName?.trim().toLowerCase() === locationName.trim().toLowerCase();
+    });
+
+    const wishlist = await Wishlist.findOne({ user: userId });
+
+    const products = wishlist ? wishlist.products : [];
+
+    const wishedProducts = productslist.map(pro => ({
+      ...pro.toObject(),
+      wished: products.some(wishid => wishid.equals(pro._id))
+    }));
+
+    console.log(wishedProducts);
+
+    res.status(200).json({ products: wishedProducts, success: true });
+
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ message: "Server error" });
+  }
+}
+export const getSingleproduct = async (req, res) => {
+  const { proId } = req.params;
+  try {
+    const product = await Product.findOne({ _id: proId }).populate("shop")
+    if (!product) {
+      res.status(404).json({ message: "Product not Found", success: false })
+    }
+    res.status(200).json({ message: "Product Found", product, success: true })
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+export const UpdateChooseLocation = async (req, res) => {
+  console.log("Azad");
+  
+  const { location } = req.params;
+  const userId = req.user._id;
+  console.log(location);
+  
+
+  try {
+    const update = await User.updateOne(
+      { _id: userId },
+      { $set: { locationName: location } }
+    );
+
+    if (update.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ message: `Now you location ${location}` });
+  } catch (error) {
+    console.error("Error updating location:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 

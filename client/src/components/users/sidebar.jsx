@@ -2,11 +2,19 @@ import { useContext, useState } from 'react';
 import { Heart, Home, LogOut, Package, Settings, ShoppingCart, User } from 'lucide-react';
 import { AppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { Axios } from '../../utils/Axiox';
+import toast from 'react-hot-toast';
 
 const User_Sidebar = () => {
-    const { toggleMenu, activeTab, setActiveTab } = useContext(AppContext)
+    const { toggleMenu, activeTab, setActiveTab,setIsAuth,setUser } = useContext(AppContext)
     const navigate = useNavigate()
-
+ const logoutsession=async()=>{
+    await Axios.post('/user/logout')
+    setIsAuth(false);
+    setUser(null);
+    navigate('/user/login')
+    toast.success("Loggedout Successfully")
+ }
     return (
         <div className="w-full relative h-full bg-white shadow-md ">
 
@@ -37,7 +45,7 @@ const User_Sidebar = () => {
                 ))}
             </nav>
             <div className="absolute bottom-6 w-full px-6 pb-4">
-                <button className={`w-full flex items-center ${!toggleMenu && 'justify-center'} text-gray-700 hover:text-black`}>
+                <button onClick={logoutsession} className={`w-full flex items-center ${!toggleMenu && 'justify-center'} text-gray-700 hover:text-black`}>
                     <LogOut className="h-5 w-5 mr-3" />
                     {
                         toggleMenu && "Logout"

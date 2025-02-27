@@ -48,7 +48,7 @@ export const UserPrivateRoute = async (req, res, next) => {
 export const ShopPrivateRoute = async (req, res, next) => {
     try {
 
-        const token = req.cookies.jwt
+        const token = req.cookies.shop_jwt
 
         if (!token) {
             return res.status(401).json({ message: "Unauthorised-No token provided" })
@@ -63,7 +63,7 @@ export const ShopPrivateRoute = async (req, res, next) => {
 
         const shop = await Shop.findById(decoded.id)
         if (!shop) {
-            return res.status(401).json({ message: "User not found" })
+            return res.status(401).json({ message: "shop not found" })
         }
         req.shop = shop
         next()

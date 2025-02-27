@@ -19,36 +19,75 @@ import { ProductContextProvider } from './context/ProductContext.jsx';
 import Wishlist_page from './components/users/Wishlist_page.jsx';
 import Product_page from './components/users/Product_page.jsx';
 import Settings_page from './components/users/Settings_page.jsx';
+import ShopSignUp from './components/shops/signUp.jsx';
 
 // Usage
 const App = () => {
-  const { name, user, isAuth } = useContext(AppContext);
+  const { isAuth, isShopAuth } = useContext(AppContext);
   console.log(isAuth);
 
   return (
     <>
       <Routes>
-        <Route path="/" element={<ShopHome />} />
+        <Route path="/shop/home" element={<ShopHome />} />
+        <Route
+          path="/shop/signup"
+          element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopSignUp />}
+        />
         <Route
           path="/shop/login"
-          element={isAuth ? <Navigate to="/" /> : <ShopLogin />}
+          element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopLogin />}
         />
-        {/* <Route path="/user/signup"element={isAuth ? <Navigate to="/" /> : <UserSignUp />} /> */}
 
-        <Route path="/user/signup" element={isAuth ? <Navigate to="/user/home" /> : <UserSignUp />} />
-        <Route path="/user/login" element={isAuth ? <Navigate to="/user/home" /> : <UserLogin />} />
+        <Route
+          path="/user/signup"
+          element={isAuth ? <Navigate to="/user/home" /> : <UserSignUp />}
+        />
+        <Route
+          path="/user/login"
+          element={isAuth ? <Navigate to="/user/home" /> : <UserLogin />}
+        />
 
-        <Route path='/user' element={<ProductContextProvider> <UserBasePage /> </ProductContextProvider>}>
-          <Route path="/user/home" element={<UserHome />} />
-          <Route path="/user/profile" element={<Profile_page />} />
-          <Route path="/user/orders" element={<View_orders />} />
-          <Route path="/user/viewCart" element={<CartContextProvider> <ViewCart /> </CartContextProvider>} />
-          <Route path="/user/wishlist" element={<Wishlist_page />} /> 
-          <Route path='/user/settings' element={<Settings_page />} />
-          <Route path='/user/viewProduct/:proId' element={<Product_page />} />
+        <Route
+          path="/user"
+          element={
+            <ProductContextProvider>
+              {' '}
+              <UserBasePage />{' '}
+            </ProductContextProvider>
+          }
+        >
+          <Route
+            path="/user/home"
+            element={isAuth ? <UserHome /> : <Navigate to="/user/login" />}
+          />
+          <Route
+            path="/user/profile"
+            element={isAuth ? <Profile_page /> : <Navigate to="/user/login" />}
+          />
+          <Route
+            path="/user/orders"
+            element={isAuth ? <View_orders /> : <Navigate to="/user/login" />}
+          />
+          <Route
+            path="/user/viewCart"
+            element={
+              <CartContextProvider>
+                {' '}
+                <ViewCart />{' '}
+              </CartContextProvider>
+            }
+          />
+          <Route
+            path="/user/wishlist"
+            element={isAuth ? <Wishlist_page /> : <Navigate to="/user/login" />}
+          />
+          <Route
+            path="/user/settings"
+            element={isAuth ? <Settings_page /> : <Navigate to="/user/login" />}
+          />
+          <Route path="/user/viewProduct/:proId" element={<Product_page />} />
         </Route>
-
-
 
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/accpet-shops" element={<AcceptShops />} />

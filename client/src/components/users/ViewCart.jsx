@@ -4,9 +4,12 @@ import { Trash2 } from "lucide-react";
 import { Axios } from "../../utils/Axiox";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { AppContext } from "../../context/AppContext";
 
 const ViewCart = () => {
+    const [refrescartpage,setRefreshCartPage] = useState(false)
     const { cartedItem, total = 0, refreshContext, setRefreshContext } = useContext(Cartcontext);
+    const { cartCount, setCartcount, refresh, setRefresh } = useContext(AppContext)
     const navigate = useNavigate();
     const [paymentMethod, setPaymentMethod] = useState("cod");
 
@@ -24,7 +27,10 @@ const ViewCart = () => {
     const deletedCartedProduct = async (shopId, productId) => {
         try {
             await Axios.get(`/user/deleteCart/${shopId}/${productId}`);
+            toast.error("Product Remove from the Cart");
         } catch (error) {
+            console.log(error);
+            
             toast.error("Failed to remove product. Please try again.");
         } finally {
             setRefreshContext(!refreshContext);
@@ -34,7 +40,9 @@ const ViewCart = () => {
     const proceedToPayment = async () => {
         try {
             const order = await Axios.get(`/user/placeOrder/${paymentMethod}`)
+            setCartcount(0)
             toast.success(order.data.message);
+            setRefresh(!refresh)
             navigate("/user/orders");
         } catch (error) {
             const errorMessage = error.response?.data?.message || "Something went wrong!";

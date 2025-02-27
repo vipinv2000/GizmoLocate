@@ -19,6 +19,7 @@ import { ProductContextProvider } from './context/ProductContext.jsx';
 import Wishlist_page from './components/users/Wishlist_page.jsx';
 import Product_page from './components/users/Product_page.jsx';
 import Settings_page from './components/users/Settings_page.jsx';
+import Notification_Page from './components/users/Notification_Page.jsx';
 
 // Usage
 const App = () => {
@@ -43,9 +44,10 @@ const App = () => {
           <Route path="/user/profile" element={<Profile_page />} />
           <Route path="/user/orders" element={<View_orders />} />
           <Route path="/user/viewCart" element={<CartContextProvider> <ViewCart /> </CartContextProvider>} />
-          <Route path="/user/wishlist" element={<Wishlist_page />} /> 
+          <Route path="/user/wishlist" element={<Wishlist_page />} />
           <Route path='/user/settings' element={<Settings_page />} />
           <Route path='/user/viewProduct/:proId' element={<Product_page />} />
+          <Route path='/user/viewNotification' element={<Notification_Page />} />
         </Route>
 
 

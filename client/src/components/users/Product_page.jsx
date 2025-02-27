@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Axios } from '../../utils/Axiox';
 import toast from 'react-hot-toast';
+import { AppContext } from '../../context/AppContext';
 
 const Product_page = () => {
     const { proId } = useParams();
     const [singleProduct, setSingleProduct] = useState(null);
+    const {cartCount,setCartcount} = useContext(AppContext)
 
     const fetchSingleProduct = async () => {
         try {
@@ -30,6 +32,7 @@ const Product_page = () => {
                 ...prev,
                 quantity: prev.quantity - 1, // Decrease quantity
             }));
+            setCartcount(cartCount+1)
         } catch (error) {
             const errorMessage = error.response?.data?.message || "Something went wrong!";
             toast.error(errorMessage);

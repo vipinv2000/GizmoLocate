@@ -44,7 +44,7 @@ const ViewOrders = () => {
 
             {!loading &&
                 !error &&
-                listOrders.map((order) => (
+                listOrders.slice().reverse().map((order) => (
                     <div key={order._id} className="bg-white shadow-lg p-4 rounded-lg mb-4">
                         {/* Order Date & Payment */}
                         <div className="flex justify-between items-center border-b pb-3">

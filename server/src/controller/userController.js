@@ -9,6 +9,8 @@ import User from '../models/user_model.js';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import Wishlist from '../models/wishlIst_model.js';
+import { userNotify } from '../lib/notification.js';
+import Notify from '../models/notify_model.js';
 
 
 dotenv.config();
@@ -218,11 +220,17 @@ export const viewCart = async (req, res) => {
     }
     console.log("Car itemss", showCart);
 
-    const cartTotal_price = calculate_total_from_userCart(showCart);
+    const { TotalPrice, cartcount, message } = calculate_total_from_userCart(showCart);
+
+    if (message) {
+      return res
+        .status(400)
+        .json({ message:message,sucess:false});
+    }
 
     return res
       .status(200)
-      .json({ showCart, total: cartTotal_price, success: true });
+      .json({ showCart, total: TotalPrice, success: true, cartcount });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Server error', success: false });
@@ -327,7 +335,7 @@ export const PlaceOrders = async (req, res) => {
       return res.status(404).json({ message: 'No cart found for this user', success: false });
     }
 
-    const TotalPrice = calculate_total_from_userCart(cart);
+    const { TotalPrice, cartcount, productname } = calculate_total_from_userCart(cart);
 
 
     const order = new Order({
@@ -340,7 +348,11 @@ export const PlaceOrders = async (req, res) => {
     });
 
     await order.save();
+
+    userNotify(userId, `Your order for ${productname} has been successfully placed! We appreciate your trust in us. Wishing you a wonderful day! ✨`)
+
     await Cart.deleteOne({ user: userId });
+
 
     return res.status(200).json({ message: 'Order Placed', success: true });
   } catch (e) {
@@ -703,11 +715,11 @@ export const getSingleproduct = async (req, res) => {
 
 export const UpdateChooseLocation = async (req, res) => {
   console.log("Azad");
-  
+
   const { location } = req.params;
   const userId = req.user._id;
   console.log(location);
-  
+
 
   try {
     const update = await User.updateOne(
@@ -726,4 +738,64 @@ export const UpdateChooseLocation = async (req, res) => {
   }
 };
 
+export const getCartCount = async (req, res) => {
+  const userId = req.user._id;
+
+  try {
+    const showCart = await Cart.findOne({ user: userId })
+      .populate('shopProduct.shopId', 'shopname location phonenumber')
+      .populate(
+        'shopProduct.products.productId',
+        'productname price productimage category productType'
+      );
+
+    if (!showCart) {
+      return res
+        .status(404)
+        .json({ message: 'Cart not found', success: false });
+    }
+    console.log("Car itemss", showCart);
+
+    let no_of_carted_item = 0;
+
+    showCart.shopProduct.map(item => {
+      no_of_carted_item += item.products.length
+    });
+
+    return res
+      .status(200)
+      .json({ success: true, cartcount: no_of_carted_item });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error', success: false });
+  }
+}
+
+export const getUserNotifications = async (req, res) => {
+  const userId = req.user._id;
+  try {
+    const notify = await Notify.findOne({ userId: userId });
+    if (notify) {
+      return res.status(200).json({ success: true, Notifications: notify });
+    }
+    return res.status(200).json({ success: false });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error', success: false });
+  }
+}
+
+export const togglenotification = async (req, res) => {
+  const userId = req.user._id;
+  try {
+    const notify = await Notify.findOne({ userId: userId });
+    if (notify) {
+      notify.isViewed = false;
+      await notify.save()
+      return res.status(200).json({ success: true, Notifications: notify });
+    }
+    return res.status(400).json({ success: false });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error', success: false });
+  }
+}
 

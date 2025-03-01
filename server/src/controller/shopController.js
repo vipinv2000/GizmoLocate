@@ -1,17 +1,32 @@
 import bcrypt from 'bcryptjs';
 import Shop from '../models/shop_model.js';
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 import { generateToken } from '../lib/utils.js';
 import Product from '../models/product_model.js';
 import cloudinary from '../lib/cloudinary.js';
 import Order from '../models/order_model.js';
 
 export const signup = async (req, res) => {
-  const { shopname, email, password, phonenumber, locationName, description, shopimage } = req.body;
+  const {
+    shopname,
+    email,
+    password,
+    phonenumber,
+    locationName,
+    description,
+    shopimage,
+  } = req.body;
   console.log(req.body);
 
   try {
-    if (!shopname || !email || !password || !phonenumber || !locationName || !description) {
+    if (
+      !shopname ||
+      !email ||
+      !password ||
+      !phonenumber ||
+      !locationName ||
+      !description
+    ) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -27,14 +42,14 @@ export const signup = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-      let imageUrl;
-        if (shopimage) {
-          const uploadResponse = await cloudinary.uploader.upload(shopimage, {
-            folder: 'profile_pics',
-            resource_type: 'image',
-          });
-          imageUrl = uploadResponse.secure_url;
-        }
+    let imageUrl;
+    if (shopimage) {
+      const uploadResponse = await cloudinary.uploader.upload(shopimage, {
+        folder: 'profile_pics',
+        resource_type: 'image',
+      });
+      imageUrl = uploadResponse.secure_url;
+    }
 
     const newShop = new Shop({
       ...req.body,
@@ -47,32 +62,32 @@ export const signup = async (req, res) => {
       phonenumber,
       locationName,
       description,
-      shopimage:imageUrl,
+      shopimage: imageUrl,
     });
 
     if (newShop) {
-       const id=newShop._id
-                 const token =  jwt.sign( {id} , process.env.JWT_SECRET, { expiresIn: '7d' });
-                 console.log((token));
-                 
-                 res.clearCookie()
-                  res.cookie('shop_jwt', token, {
-                    maxAge: 7 * 24 * 60 * 60 * 1000,
-                    httpOnly: true,
-                    samesite:"strict",
-                
-                  });
+      const id = newShop._id;
+      const token = jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: '7d',
+      });
+      console.log(token);
+
+      res.clearCookie();
+      res.cookie('shop_jwt', token, {
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        samesite: 'strict',
+      });
       await newShop.save();
 
       res.status(201).json({
-        success:true,
-        shop:{
+        success: true,
+        shop: {
           _id: newShop._id,
           shopname: newShop.shopname,
           email: newShop.email,
           profilePic: newShop.profilePic,
-        }
-       
+        },
       });
     } else {
       res.status(400).json({ message: 'Invalid Shop data' });
@@ -101,26 +116,25 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const id=shop._id
-                 const token =  jwt.sign( {id} , process.env.JWT_SECRET, { expiresIn: '7d' });
-                 console.log((token));
-                 
-                 res.clearCookie()
-                  res.cookie('shop_jwt', token, {
-                    maxAge: 7 * 24 * 60 * 60 * 1000,
-                    httpOnly: true,
-                    samesite:"strict",
-                
-                  });
+    const id = shop._id;
+    const token = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    console.log(token);
+
+    res.clearCookie();
+    res.cookie('shop_jwt', token, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      samesite: 'strict',
+    });
 
     res.status(200).json({
       success: true,
       message: 'success',
-      _shop:{
+      _shop: {
         id: shop._id,
-      fullName: shop.fullName,
-      email: shop.email,
-      }
+        fullName: shop.fullName,
+        email: shop.email,
+      },
     });
   } catch (error) {
     console.log('Error in login controller', error.message);
@@ -149,14 +163,142 @@ export const shopViewAuth = (req, res) => {
 };
 
 export const addProduct = async (req, res) => {
+  const {
+    productname,
+    category,
+    productType,
+    modelnumber,
+    quantity,
+    price,
+    description,
+    productimage,
+  } = req.body;
+  console.log(req.body);
+  console.log('req.shop._id', req.shop._id);
+
   try {
-    const shop = await Product.create({
-      ...req.body,
-      // shopimage:imageUrl,
+    // Validate required fields
+    if (!productname || !modelnumber || !quantity || !price || !category) {
+      return res.status(400).json({
+        message:
+          'Product name, model number,category, quantity and price are required',
+      });
+    }
+
+    let imageUrl;
+    if (productimage) {
+      const uploadResponse = await cloudinary.uploader.upload(productimage, {
+        folder: 'product_images',
+        resource_type: 'image',
+      });
+      imageUrl = uploadResponse.secure_url;
+    }
+
+    const newProduct = new Product({
+      productname,
+      category,
+      productType,
+      modelnumber,
+      quantity,
+      price,
+      description,
+      productimage: imageUrl,
       shop: req.shop._id,
     });
-    return res.status(201).json({ message: 'Product Added', sucess: true });
+
+    await newProduct.save();
+
+    res.status(201).json({
+      success: true,
+      product: newProduct,
+    });
+  } catch (error) {
+    console.error('Error in addProduct controller:', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const showProduct = async (req, res) => {
+  const shopId = req.shop._id;
+  try {
+    const myShopProduct = await Product.find({ shop: shopId });
+
+    if (!myShopProduct) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'No product for this shop' });
+    }
+    const Totalproducts = myShopProduct.length;
+    return res
+      .status(200)
+      .json({ success: true, myShopProduct, Totalproducts });
   } catch (e) {
+    console.error('Error in showProduct controller:', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+
+export const pendingOrders = async (req, res) => {
+  try {
+    const shopId = req.shop._id; 
+
+    const orders = await Order.find({
+      'shopProduct.shopId': shopId,
+      'shopProduct.isDelivered': false,
+    })
+      .populate('user', 'fullName email')
+      .populate(
+        'shopProduct.products.productId',
+        'productname price productimage'
+      );
+
+    if (!orders.length) {
+      return res.json({
+        shopId,
+        totalUndeliveredOrders: 0,
+        undeliveredOrders: [],
+      });
+    }
+
+    const formattedOrders = orders.map(order => {
+      if (!order.shopProduct || !Array.isArray(order.shopProduct)) {
+        console.log('Invalid shopProduct structure for order:', order._id);
+        return {
+          orderId: order._id,
+          user: order.user,
+          products: [],
+        };
+      }
+
+      const shopOrder = order.shopProduct.find(
+        sp => sp.shopId.toString() === shopId.toString()
+      );
+      return {
+        orderId: order._id,
+        user: order.user,
+        products: shopOrder
+          ? shopOrder.products.map(p => ({
+              _id: p._id,
+              productId: p.productId._id,
+              name: p.productId.productname,
+              price: p.productId.price,
+              image: p.productId.productimage,
+              quantity: p.quantity,
+              date: p.date,
+            }))
+          : [],
+      };
+    });
+
+    res.json({
+      shopId,
+      totalUndeliveredOrders: formattedOrders.length,
+      undeliveredOrders: formattedOrders,
+    });
+  } catch (error) {
+    console.error('Error fetching undelivered orders:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };

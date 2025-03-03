@@ -1,0 +1,23 @@
+.truck-container {
+    position: relative;
+    width: 100vw;
+    height: 100px;
+    overflow: hidden;
+  }
+  
+  .truck {
+    position: absolute;
+    left: -100px; /* Start fully off-screen */
+    bottom: 10px;
+    animation: moveTruck 8s linear forwards; /* 8 seconds for smooth movement */
+  }
+  
+  @keyframes moveTruck {
+    from {
+      left: -100px; /* Start position (off-screen) */
+    }
+    to {
+      left: 100vw; /* Move fully across the screen */
+    }
+  }
+  

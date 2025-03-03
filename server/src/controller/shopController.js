@@ -318,6 +318,7 @@ export const fullfilledOrders = async (req, res) => {
     if (!orders.length) {
       return res.json({
         shopId,
+        totaldeliveredOrders: 0,
         deliveredOrders: [],
       });
     }
@@ -354,7 +355,7 @@ export const fullfilledOrders = async (req, res) => {
 
     res.json({
       shopId,
-      
+      totaldeliveredOrders: formattedOrders.length,
       deliveredOrders: formattedOrders,
     });
   } catch (error) {

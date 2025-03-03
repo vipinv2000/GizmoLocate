@@ -25,10 +25,15 @@ import {
   ShoppingCart,
   IndianRupee,
   CheckCircle,
+  Clock,
+  Hourglass,
+  HourglassIcon,
+  Boxes,
 } from 'lucide-react';
 import { Axios } from '../../utils/Axiox';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import OrdersChart from '../Chart';
 
 const ShopHome = () => {
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -51,7 +56,9 @@ const ShopHome = () => {
   const [showPendingOrders, setShowPendingOrders] = useState(false);
   const [showfullfilledOrders, setShowFullfilledOrders] = useState(false);
   const [fullfilledOrders, setFullfilledOrders] = useState([]);
+  const [fullfilledOrdersCount, setFullfilledOrdersCount] = useState(0);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [showorderStatus, setShowOrderStatus] = useState(false);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [shopUsers, setShopUsers] = useState([]);
   const [showUsers, setShowUsers] = useState(false);
@@ -59,6 +66,7 @@ const ShopHome = () => {
   const ordersRef = useRef(null);
   const usersRef = useRef(null);
   const fullfillRef = useRef(null);
+  const orderStatusRef = useRef(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -100,7 +108,8 @@ const ShopHome = () => {
       const { data } = await Axios.get('/shop/users');
       setShopUsers(data.users || []);
       setShowUsers(true);
-      setShowFullfilledOrders(false)
+      setShowOrderStatus(false)
+      setShowFullfilledOrders(false);
       setShowProducts(false);
       setShowPendingOrders(false);
       setTimeout(() => {
@@ -115,27 +124,26 @@ const ShopHome = () => {
     }
   };
 
-  const fetchFullfilledOrders= async ()=>{
+  const fetchFullfilledOrders = async () => {
     try {
       const { data } = await Axios.get('/shop/fullfilledOrders');
       setFullfilledOrders(data.deliveredOrders || []);
-      setShowFullfilledOrders(true)
+      setFullfilledOrdersCount(data.totaldeliveredOrders || 0);
+      setShowFullfilledOrders(true);
+      setShowOrderStatus(false)
       setShowPendingOrders(false);
-  setShowProducts(false);
-  setShowUsers(false);
-  setTimeout(() => {
-    fullfillRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  }, 300);
-     
+      setShowProducts(false);
+      setShowUsers(false);
+      setTimeout(() => {
+        fullfillRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }, 300);
     } catch (error) {
       console.error('Error fetching fullfilled orders:', error);
     }
   };
-
-
 
   const Navigate = useNavigate();
 
@@ -195,12 +203,13 @@ const ShopHome = () => {
     {
       title: 'Total Products',
       value: productList.length,
-      icon: Package,
+      icon:  () => <Boxes size={28} className="text-white" />, 
       trend: 'Click to CheckOut the products..',
       color: 'bg-blue-500',
       onClick: () => {
         setShowProducts(true);
-        setShowFullfilledOrders(false)
+        setShowOrderStatus(false)
+        setShowFullfilledOrders(false);
         setShowPendingOrders(false);
         setShowUsers(false);
         setTimeout(() => {
@@ -221,12 +230,13 @@ const ShopHome = () => {
     {
       title: 'Pending Orders',
       value: pendingOrdersCount,
-      icon: Package,
+      icon: () => <HourglassIcon size={24} className="text-white" />, 
       trend: 'Click to view pending orders',
-      color: 'bg-purple-500',
+      color: 'bg-red-500',
       onClick: () => {
         setShowPendingOrders(true);
-        setShowFullfilledOrders(false)
+        setShowOrderStatus(false)
+        setShowFullfilledOrders(false);
         setShowProducts(false);
         setShowUsers(false);
         setTimeout(() => {
@@ -243,8 +253,8 @@ const ShopHome = () => {
     {
       icon: CheckCircle,
       title: 'Completed Orders',
-      description: "Click herer to the completed orders",
-      onClick:fetchFullfilledOrders,
+      description: 'Click herer to the completed orders',
+      onClick: fetchFullfilledOrders,
     },
     {
       icon: Users,
@@ -254,8 +264,22 @@ const ShopHome = () => {
     },
     {
       icon: TrendingUp,
-      title: 'Sales Report',
-      description: 'Download monthly reports',
+      title: 'Order Status',
+      description: 'Check how far to go...',
+      onClick:async()=>{
+       try {
+        const { data } = await Axios.get('/shop/fullfilledOrders');
+        setFullfilledOrdersCount(data.totaldeliveredOrders || 0);
+        setShowOrderStatus(true)
+        setShowFullfilledOrders(false);
+      setShowPendingOrders(false);
+      setShowProducts(false);
+      setShowUsers(false);
+        
+       } catch (e) {
+        toast.error("Retry")
+       }
+      }
     },
   ];
 
@@ -274,7 +298,6 @@ const ShopHome = () => {
       return;
     }
 
-   
     try {
       const response = await Axios.patch(`/shop/completeOrder/${orderId}`);
 
@@ -293,11 +316,11 @@ const ShopHome = () => {
       toast.error(
         error.response?.data?.message || 'Failed to mark order as delivered'
       );
-    } 
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return <>
+  <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div
           className={`flex justify-between items-center mb-8 transition-all duration-500 ${
@@ -313,7 +336,7 @@ const ShopHome = () => {
           <button
             onClick={() => {
               setIsAddingProduct(true);
-              setShowFullfilledOrders(false)
+              setShowFullfilledOrders(false);
               setShowProducts(false);
               setShowPendingOrders(false);
               setShowUsers(false);
@@ -389,6 +412,7 @@ const ShopHome = () => {
                 </div>
               </button>
             ))}
+
           </div>
         )}
 
@@ -591,7 +615,7 @@ const ShopHome = () => {
           >
             <button
               onClick={() => setShowProducts(false)}
-              className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+              className="absolute top-2 right-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-red-600"
             >
               Close
             </button>
@@ -636,6 +660,7 @@ const ShopHome = () => {
               </button>
             )}
           </div>
+          
         )}
 
         {showPendingOrders && (
@@ -645,7 +670,7 @@ const ShopHome = () => {
           >
             <button
               onClick={() => setShowPendingOrders(false)}
-              className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+              className="absolute top-2 right-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-red-600"
             >
               Close
             </button>
@@ -764,15 +789,14 @@ const ShopHome = () => {
           </div>
         )}
 
-
-{showfullfilledOrders && (
+        {showfullfilledOrders && (
           <div
             ref={fullfillRef}
             className="bg-white rounded-xl shadow-lg p-6 animate-fadeIn relative"
           >
             <button
               onClick={() => setShowFullfilledOrders(false)}
-              className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+              className="absolute top-2 right-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-red-600"
             >
               Close
             </button>
@@ -801,12 +825,10 @@ const ShopHome = () => {
                         </p>
                       </div>
                       <div className="mt-2 sm:mt-0">
-                      
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <Check className="h-3 w-3 mr-1" />
-                            Delivered
-                          </span>
-                       
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <Check className="h-3 w-3 mr-1" />
+                          Delivered
+                        </span>
                       </div>
                     </div>
 
@@ -849,7 +871,6 @@ const ShopHome = () => {
                               ? formatDate(order.products[0].date)
                               : 'N/A'}
                           </span>
-                       
                         </div>
                       </div>
                     ) : (
@@ -888,7 +909,7 @@ const ShopHome = () => {
           >
             <button
               onClick={() => setShowUsers(false)}
-              className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+              className="absolute top-2 right-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-red-600"
             >
               Close
             </button>
@@ -967,9 +988,27 @@ const ShopHome = () => {
             )}
           </div>
         )}
+           
       </div>
+    <div className=" w-2xl ml-[30%] relative">
+  {showorderStatus && (
+    <div>
+       <button
+              onClick={() => setShowOrderStatus(false)}
+              className="absolute top-2 right-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-red-600"
+            >
+              Close
+            </button>
+      
+      <OrdersChart 
+    pendingOrdersCount={pendingOrdersCount} 
+    completedOrdersCount={fullfilledOrdersCount} 
+  /></div>
+  )}
+</div>
     </div>
-  );
+
+  </>
 };
 
 export default ShopHome;

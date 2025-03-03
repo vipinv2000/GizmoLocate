@@ -238,11 +238,9 @@ export const showProduct = async (req, res) => {
   }
 };
 
-
-
 export const pendingOrders = async (req, res) => {
   try {
-    const shopId = req.shop._id; 
+    const shopId = req.shop._id;
 
     const orders = await Order.find({
       'shopProduct.shopId': shopId,
@@ -303,28 +301,226 @@ export const pendingOrders = async (req, res) => {
   }
 };
 
+export const fullfilledOrders = async (req, res) => {
+  try {
+    const shopId = req.shop._id;
+
+    const orders = await Order.find({
+      'shopProduct.shopId': shopId,
+      'shopProduct.isDelivered': true,
+    })
+      .populate('user', 'fullName email')
+      .populate(
+        'shopProduct.products.productId',
+        'productname price productimage'
+      );
+
+    if (!orders.length) {
+      return res.json({
+        shopId,
+        deliveredOrders: [],
+      });
+    }
+
+    const formattedOrders = orders.map(order => {
+      if (!order.shopProduct || !Array.isArray(order.shopProduct)) {
+        console.log('Invalid shopProduct structure for order:', order._id);
+        return {
+          orderId: order._id,
+          user: order.user,
+          products: [],
+        };
+      }
+
+      const shopOrder = order.shopProduct.find(
+        sp => sp.shopId.toString() === shopId.toString()
+      );
+      return {
+        orderId: order._id,
+        user: order.user,
+        products: shopOrder
+          ? shopOrder.products.map(p => ({
+              _id: p._id,
+              productId: p.productId._id,
+              name: p.productId.productname,
+              price: p.productId.price,
+              image: p.productId.productimage,
+              quantity: p.quantity,
+              date: p.date,
+            }))
+          : [],
+      };
+    });
+
+    res.json({
+      shopId,
+      
+      deliveredOrders: formattedOrders,
+    });
+  } catch (error) {
+    console.error('Error fetching delivered orders:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
 export const completeOrder = async (req, res) => {
   const shopId = req.shop._id;
-  const { userId } = req.params;
-  console.log(shopId, userId);
+  const { orderId } = req.params;
 
   try {
-    const UserOrders = await Order.findOne({ user: userId })
+    const order = await Order.findById(orderId)
       .populate('user', '-password')
       .populate('shopProduct.products.productId');
 
-    const shopIndex = UserOrders.shopProduct.findIndex(
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    const shopIndex = order.shopProduct.findIndex(
       item => item.shopId.toString() === shopId.toString()
     );
 
-    const shopProducts = {
-      user: UserOrders.user,
-      products: UserOrders.shopProduct[shopIndex].products,
-    };
-    UserOrders.shopProduct[shopIndex].isDelivered = true;
+    if (shopIndex === -1) {
+      return res
+        .status(404)
+        .json({ message: 'Shop products not found in this order' });
+    }
 
-    await UserOrders.save();
+    order.shopProduct[shopIndex].isDelivered = true;
+
+    await order.save();
+
+    const shopProducts = {
+      user: order.user,
+      products: order.shopProduct[shopIndex].products,
+      isDelivered: true,
+    };
 
     return res.status(200).json(shopProducts);
-  } catch (e) {}
+  } catch (e) {
+    console.error('Error completing order:', e);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+// Revenue Controller
+export const getShopRevenue = async (req, res) => {
+  const shopId = req.shop._id;
+  
+  try {
+    // Find all orders that have this shop's products and are delivered
+    const orders = await Order.find({
+      'shopProduct.shopId': shopId,
+      'shopProduct.isDelivered': true
+    }).populate('shopProduct.products.productId', 'price');
+    
+    let totalRevenue = 0;
+    
+    // Calculate total revenue from delivered orders
+    orders.forEach(order => {
+      const shopProductIndex = order.shopProduct.findIndex(
+        item => item.shopId.toString() === shopId.toString() && item.isDelivered
+      );
+      
+      if (shopProductIndex !== -1 && order.shopProduct[shopProductIndex].products) {
+        // Calculate revenue from this order's products
+        order.shopProduct[shopProductIndex].products.forEach(product => {
+          // Get price either directly from product or from populated productId
+          const price = product.price || (product.productId && product.productId.price) || 0;
+          const quantity = product.quantity || 1;
+          
+          totalRevenue += price * quantity;
+        });
+      }
+    });
+    
+    return res.status(200).json({
+      success: true,
+      totalRevenue
+    });
+  } catch (error) {
+    console.error('Error calculating revenue:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to calculate revenue'
+    });
+  }
+};
+
+// Shop Users Controller
+export const getShopUsers = async (req, res) => {
+  const shopId = req.shop._id;
+  
+  try {
+    // Find all orders that have this shop's products
+    const orders = await Order.find({
+      'shopProduct.shopId': shopId
+    }).populate('user', 'fullName email phone address createdAt')
+      .populate('shopProduct.products.productId', 'price'); // Populate product details to get price
+    
+    // Extract unique users and their order data
+    const userMap = new Map();
+    
+    orders.forEach(order => {
+      // Skip orders without user information
+      if (!order.user || !order.user._id) {
+        return;
+      }
+      
+      const userId = order.user._id.toString();
+      const shopProductIndex = order.shopProduct.findIndex(
+        item => item.shopId && item.shopId.toString() === shopId.toString()
+      );
+      
+      if (shopProductIndex !== -1 && order.shopProduct[shopProductIndex].products) {
+        // Calculate amount spent on this order
+        let orderTotal = 0;
+        
+        order.shopProduct[shopProductIndex].products.forEach(product => {
+          // Get price either directly from product or from populated productId
+          const price = product.price || (product.productId && product.productId.price) || 0;
+          const quantity = product.quantity || 1;
+          
+          orderTotal += price * quantity;
+        });
+        
+        // If user already exists in map, update their data
+        if (userMap.has(userId)) {
+          const userData = userMap.get(userId);
+          userMap.set(userId, {
+            ...userData,
+            orderCount: userData.orderCount + 1,
+            totalSpent: userData.totalSpent + orderTotal
+          });
+        } else {
+          // Add new user to map
+          userMap.set(userId, {
+            _id: order.user._id,
+            fullName: order.user.fullName,
+            email: order.user.email,
+            phone: order.user.phone,
+            address: order.user.address,
+            createdAt: order.user.createdAt,
+            orderCount: 1,
+            totalSpent: orderTotal
+          });
+        }
+      }
+    });
+    
+    // Convert map to array
+    const users = Array.from(userMap.values());
+    
+    return res.status(200).json({
+      success: true,
+      users
+    });
+  } catch (error) {
+    console.error('Error fetching shop users:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch shop users'
+    });
+  }
 };

@@ -11,12 +11,20 @@ import {
   Box,
   Type,
   ImagesIcon,
-  LayoutDashboard,
   TrendingUp,
   Users,
   Calendar,
   Truck,
   ShoppingBag,
+  AlertCircle,
+  Check,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  ShoppingCart,
+  IndianRupee,
+  CheckCircle,
 } from 'lucide-react';
 import { Axios } from '../../utils/Axiox';
 import toast from 'react-hot-toast';
@@ -41,9 +49,16 @@ const ShopHome = () => {
   const [showProducts, setShowProducts] = useState(false);
   const [pendingOrders, setPendingOrders] = useState([]);
   const [showPendingOrders, setShowPendingOrders] = useState(false);
+  const [showfullfilledOrders, setShowFullfilledOrders] = useState(false);
+  const [fullfilledOrders, setFullfilledOrders] = useState([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [shopUsers, setShopUsers] = useState([]);
+  const [showUsers, setShowUsers] = useState(false);
   const productRef = useRef(null);
   const ordersRef = useRef(null);
+  const usersRef = useRef(null);
+  const fullfillRef = useRef(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -60,18 +75,67 @@ const ShopHome = () => {
         const { data } = await Axios.get('/shop/pendingOrders');
         setPendingOrders(data.undeliveredOrders || []);
         setPendingOrdersCount(data.totalUndeliveredOrders || 0);
-        console.log('fjljgjggjiiotjgiotghjothjujhioh',pendingOrders[0].products[0].date);
-        
       } catch (error) {
         console.error('Error fetching pending orders:', error);
-        toast.error('Failed to fetch pending orders');
+      }
+    };
+
+    const fetchTotalRevenue = async () => {
+      try {
+        const { data } = await Axios.get('/shop/revenue');
+        setTotalRevenue(data.totalRevenue || 0);
+      } catch (error) {
+        console.error('Error fetching revenue:', error);
       }
     };
 
     setIsLoaded(true);
     fetchProducts();
     fetchPendingOrders();
+    fetchTotalRevenue();
   }, []);
+
+  const fetchShopUsers = async () => {
+    try {
+      const { data } = await Axios.get('/shop/users');
+      setShopUsers(data.users || []);
+      setShowUsers(true);
+      setShowFullfilledOrders(false)
+      setShowProducts(false);
+      setShowPendingOrders(false);
+      setTimeout(() => {
+        usersRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }, 300);
+    } catch (error) {
+      console.error('Error fetching shop users:', error);
+      toast.error('Failed to fetch users');
+    }
+  };
+
+  const fetchFullfilledOrders= async ()=>{
+    try {
+      const { data } = await Axios.get('/shop/fullfilledOrders');
+      setFullfilledOrders(data.deliveredOrders || []);
+      setShowFullfilledOrders(true)
+      setShowPendingOrders(false);
+  setShowProducts(false);
+  setShowUsers(false);
+  setTimeout(() => {
+    fullfillRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, 300);
+     
+    } catch (error) {
+      console.error('Error fetching fullfilled orders:', error);
+    }
+  };
+
+
 
   const Navigate = useNavigate();
 
@@ -136,7 +200,9 @@ const ShopHome = () => {
       color: 'bg-blue-500',
       onClick: () => {
         setShowProducts(true);
+        setShowFullfilledOrders(false)
         setShowPendingOrders(false);
+        setShowUsers(false);
         setTimeout(() => {
           productRef.current?.scrollIntoView({
             behavior: 'smooth',
@@ -147,9 +213,9 @@ const ShopHome = () => {
     },
     {
       title: 'Total Revenue',
-      value: '$0',
-      icon: DollarSign,
-      trend: '+0% from last month',
+      value: `Rs ${totalRevenue}`,
+      icon: IndianRupee,
+      trend: 'From delivered orders',
       color: 'bg-green-500',
     },
     {
@@ -160,7 +226,9 @@ const ShopHome = () => {
       color: 'bg-purple-500',
       onClick: () => {
         setShowPendingOrders(true);
+        setShowFullfilledOrders(false)
         setShowProducts(false);
+        setShowUsers(false);
         setTimeout(() => {
           ordersRef.current?.scrollIntoView({
             behavior: 'smooth',
@@ -173,19 +241,21 @@ const ShopHome = () => {
 
   const quickActions = [
     {
-      icon: LayoutDashboard,
-      title: 'View Analytics',
-      description: "Check your shop's performance",
+      icon: CheckCircle,
+      title: 'Completed Orders',
+      description: "Click herer to the completed orders",
+      onClick:fetchFullfilledOrders,
+    },
+    {
+      icon: Users,
+      title: 'Customer List',
+      description: 'View your shop customers',
+      onClick: fetchShopUsers,
     },
     {
       icon: TrendingUp,
       title: 'Sales Report',
       description: 'Download monthly reports',
-    },
-    {
-      icon: Users,
-      title: 'Customer List',
-      description: 'Manage your customers',
     },
   ];
 
@@ -198,10 +268,37 @@ const ShopHome = () => {
     });
   };
 
+  const markAsDelivered = async orderId => {
+    if (!orderId) {
+      toast.error('Missing orderId ');
+      return;
+    }
+
+   
+    try {
+      const response = await Axios.patch(`/shop/completeOrder/${orderId}`);
+
+      if (response.data) {
+        const { data } = await Axios.get('/shop/pendingOrders');
+        setPendingOrders(data.undeliveredOrders || []);
+        setPendingOrdersCount(data.totalUndeliveredOrders || 0);
+
+        const revenueResponse = await Axios.get('/shop/revenue');
+        setTotalRevenue(revenueResponse.data.totalRevenue || 0);
+
+        toast.success('Order marked as delivered successfully');
+      }
+    } catch (error) {
+      console.error('Error marking order as delivered:', error);
+      toast.error(
+        error.response?.data?.message || 'Failed to mark order as delivered'
+      );
+    } 
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div
           className={`flex justify-between items-center mb-8 transition-all duration-500 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
@@ -216,8 +313,10 @@ const ShopHome = () => {
           <button
             onClick={() => {
               setIsAddingProduct(true);
+              setShowFullfilledOrders(false)
               setShowProducts(false);
               setShowPendingOrders(false);
+              setShowUsers(false);
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transform transition-transform duration-200 hover:scale-105"
           >
@@ -262,12 +361,12 @@ const ShopHome = () => {
           </div>
         )}
 
-        {/* Quick Actions */}
         {!isAddingProduct && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {quickActions.map((action, index) => (
               <button
                 key={action.title}
+                onClick={action.onClick || null}
                 className={`bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 text-left transform hover:-translate-y-1 ${
                   isLoaded
                     ? 'opacity-100 translate-y-0'
@@ -293,7 +392,6 @@ const ShopHome = () => {
           </div>
         )}
 
-        {/* Add Product Form */}
         {isAddingProduct && (
           <div className="bg-white rounded-xl shadow-lg p-6 animate-fadeIn">
             <div className="flex justify-between items-center mb-6">
@@ -486,7 +584,6 @@ const ShopHome = () => {
           </div>
         )}
 
-        {/* Product List */}
         {showProducts && (
           <div
             ref={productRef}
@@ -541,7 +638,6 @@ const ShopHome = () => {
           </div>
         )}
 
-        {/* Pending Orders */}
         {showPendingOrders && (
           <div
             ref={ordersRef}
@@ -568,8 +664,7 @@ const ShopHome = () => {
                       <div>
                         <h3 className="text-lg font-semibold flex items-center">
                           <ShoppingBag className="h-5 w-5 mr-2 text-purple-500" />
-                          Order #
-                          {order.orderId.substring(order.orderId.length - 6)}
+                          Order #{order.orderId.substring(order.orderId)}
                         </h3>
                         <p className="text-sm text-gray-500 mt-1">
                           <span className="flex items-center">
@@ -579,10 +674,17 @@ const ShopHome = () => {
                         </p>
                       </div>
                       <div className="mt-2 sm:mt-0">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          <Truck className="h-3 w-3 mr-1" />
-                          Pending Delivery
-                        </span>
+                        {order.isDelivered ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <Check className="h-3 w-3 mr-1" />
+                            Delivered
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <Truck className="h-3 w-3 mr-1" />
+                            Pending Delivery
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -608,22 +710,27 @@ const ShopHome = () => {
                                 <h5 className="font-medium">{product.name}</h5>
                                 <div className="flex justify-between text-sm text-gray-500">
                                   <span>Qty: {product.quantity}</span>
-                                  <span>${product.price}</span>
+                                  <span>
+                                    Rs {product.price * product.quantity}
+                                  </span>
                                 </div>
                               </div>
                             </div>
                           ))}
                         </div>
+
                         <div className="mt-4 flex justify-between items-center">
                           <span className="text-sm text-gray-500 flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
                             Order Date:{' '}
-                           
-                            
-                            {order.products?.[0]?.date ? formatDate(order.products[0].date) : 'N/A'}
-
+                            {order.products?.[0]?.date
+                              ? formatDate(order.products[0].date)
+                              : 'N/A'}
                           </span>
-                          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                          <button
+                            onClick={() => markAsDelivered(order.orderId)}
+                            className="px-4 py-2 rounded-lg text-sm  bg-green-600 text-white hover:bg-green-700"
+                          >
                             Mark as Delivered
                           </button>
                         </div>
@@ -647,6 +754,210 @@ const ShopHome = () => {
             )}
 
             {showPendingOrders && (
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition"
+              >
+                Back to Top
+              </button>
+            )}
+          </div>
+        )}
+
+
+{showfullfilledOrders && (
+          <div
+            ref={fullfillRef}
+            className="bg-white rounded-xl shadow-lg p-6 animate-fadeIn relative"
+          >
+            <button
+              onClick={() => setShowFullfilledOrders(false)}
+              className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+            >
+              Close
+            </button>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Completed Orders
+            </h2>
+
+            {fullfilledOrders.length > 0 ? (
+              <div className="space-y-6">
+                {fullfilledOrders.map(order => (
+                  <div
+                    key={order.orderId}
+                    className="border border-gray-200 rounded-lg p-4"
+                  >
+                    <div className="flex flex-wrap justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <ShoppingBag className="h-5 w-5 mr-2 text-purple-500" />
+                          Order #{order.orderId.substring(order.orderId)}
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          <span className="flex items-center">
+                            <Users className="h-4 w-4 mr-1" />
+                            {order.user.fullName} ({order.user.email})
+                          </span>
+                        </p>
+                      </div>
+                      <div className="mt-2 sm:mt-0">
+                      
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <Check className="h-3 w-3 mr-1" />
+                            Delivered
+                          </span>
+                       
+                      </div>
+                    </div>
+
+                    {order.products && order.products.length > 0 ? (
+                      <div className="mt-4">
+                        <h4 className="font-medium text-gray-700 mb-2">
+                          Products:
+                        </h4>
+                        <div className="space-y-3">
+                          {order.products.map(product => (
+                            <div
+                              key={product._id}
+                              className="flex items-center p-2 bg-gray-50 rounded-md"
+                            >
+                              {product.image && (
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  className="w-12 h-12 object-cover rounded-md mr-3"
+                                />
+                              )}
+                              <div className="flex-1">
+                                <h5 className="font-medium">{product.name}</h5>
+                                <div className="flex justify-between text-sm text-gray-500">
+                                  <span>Qty: {product.quantity}</span>
+                                  <span>
+                                    Rs {product.price * product.quantity}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-4 flex justify-between items-center">
+                          <span className="text-sm text-gray-500 flex items-center">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            Order Date:{' '}
+                            {order.products?.[0]?.date
+                              ? formatDate(order.products[0].date)
+                              : 'N/A'}
+                          </span>
+                       
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-4 p-4 bg-yellow-50 rounded-md">
+                        <p className="text-yellow-700 flex items-center">
+                          <AlertCircle className="h-5 w-5 mr-2" />
+                          No products found for this order
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500">No completed orders found</p>
+              </div>
+            )}
+
+            {showfullfilledOrders && (
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition"
+              >
+                Back to Top
+              </button>
+            )}
+          </div>
+        )}
+
+        {showUsers && (
+          <div
+            ref={usersRef}
+            className="bg-white rounded-xl shadow-lg p-6 animate-fadeIn relative"
+          >
+            <button
+              onClick={() => setShowUsers(false)}
+              className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+            >
+              Close
+            </button>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Shop Customers
+            </h2>
+
+            {shopUsers.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {shopUsers.map(user => (
+                  <div
+                    key={user._id}
+                    className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200"
+                  >
+                    <div className="flex items-center mb-3">
+                      <div className="bg-blue-100 p-3 rounded-full">
+                        <User className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {user.fullName}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Customer since {formatDate(user.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 mt-4">
+                      <p className="text-sm flex items-center text-gray-600">
+                        <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                        {user.email}
+                      </p>
+                      {user.phone && (
+                        <p className="text-sm flex items-center text-gray-600">
+                          <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                          {user.phone}
+                        </p>
+                      )}
+                      {user.address && (
+                        <p className="text-sm flex items-center text-gray-600">
+                          <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                          {user.address}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-gray-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm flex items-center text-gray-600">
+                          <ShoppingCart className="h-4 w-4 mr-1 text-gray-400" />
+                          Orders: {user.orderCount || 0}
+                        </span>
+                        <span className="text-sm font-medium text-blue-600">
+                          ${user.totalSpent || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500">No customers found</p>
+              </div>
+            )}
+
+            {showUsers && (
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition"

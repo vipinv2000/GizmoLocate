@@ -10,6 +10,9 @@ const ViewCart = () => {
     const navigate = useNavigate();
     const [paymentMethod, setPaymentMethod] = useState("cod");
 
+    console.log('carted item',cartedItem);
+    
+
     const quantityChange = async (shopId, productId, changeState) => {
         try {
             await Axios.get(`/user/countChange/${shopId}/${productId}/${changeState}`);

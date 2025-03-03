@@ -12,6 +12,9 @@ import {
   shopViewAuth,
   showProduct,
   pendingOrders,
+  getShopRevenue,
+  getShopUsers,
+  fullfilledOrders,
 } from '../controller/shopController.js';
 
 const router = express.Router();
@@ -23,6 +26,9 @@ router.get('/shopviewauth', ShopPrivateRoute, shopViewAuth);
 router.post('/add-product', ShopPrivateRoute, addProduct);
 router.get('/showproduct', ShopPrivateRoute, showProduct);
 router.get('/pendingOrders', ShopPrivateRoute, pendingOrders);
-router.get('/completeOrder/:userId', ShopPrivateRoute, completeOrder);
+router.get('/fullfilledOrders', ShopPrivateRoute, fullfilledOrders);
+router.get('/revenue', ShopPrivateRoute, getShopRevenue);
+router.get('/users', ShopPrivateRoute, getShopUsers);
+router.patch('/completeOrder/:orderId', ShopPrivateRoute, completeOrder);
 
 export default router;

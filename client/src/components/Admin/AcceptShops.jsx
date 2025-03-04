@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Axios } from "../../utils/Axiox";
 import toast from "react-hot-toast";
 import { ToastContainer, toast as toastify } from 'react-toastify';
+import Admin_Navbar from "./Admin_Navbar";
 
 const AcceptShops = () => {
   const [activateShop, setActivateShop] = useState([]);
@@ -11,36 +12,36 @@ const AcceptShops = () => {
       const { data } = await Axios.get("/admin/listRequestedShop");
       const { success, listshop, message } = data;
       if (success) {
-        toast.success("Fetched");
         setActivateShop(listshop);
         console.log(listshop);
       } else {
-        toast.error(message);
+        setActivateShop([]);
+        
       }
     } catch (e) {
       toast.error(e.message);
     }
   };
-const AcceptShops=async (id)=>{
+  const AcceptShops = async (id) => {
     try {
-        const {data}= await Axios.get(`/admin/acceptReq/${id}`)
-        toastify.success(data.message)
-        listshop()
+      const { data } = await Axios.get(`/admin/acceptReq/${id}`)
+      toastify.success(data.message)
+      listshop()
     } catch (e) {
-        toastify.error(e.message)
+      toastify.error(e.message)
     }
-}
+  }
   useEffect(() => {
     listshop();
   }, []);
 
   return (
     <div className="container mx-auto px-4 py-8">
-        <ToastContainer />
+      <ToastContainer />
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
         Requested Shops
       </h1>
-      
+
       {activateShop.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activateShop.map((shop) => (
@@ -53,13 +54,13 @@ const AcceptShops=async (id)=>{
                 alt={shop.shopname}
                 className="w-full h-48 object-cover"
               />
-              
+
               <div className="p-6">
                 <h2 className="text-2xl font-semibold text-gray-900">
                   {shop.shopname}
                 </h2>
                 <p className="text-gray-600 text-sm">{shop.description}</p>
-                
+
                 <div className="mt-4">
                   <p className="text-gray-700">
                     📧 <strong>Email:</strong> {shop.email}
@@ -71,15 +72,14 @@ const AcceptShops=async (id)=>{
                     📍 <strong>Location:</strong> {shop.locationName}
                   </p>
                   <p
-                    className={`mt-2 text-sm font-medium ${
-                      shop.isAccept ? "text-green-600" : "text-red-600"
-                    }`}
+                    className={`mt-2 text-sm font-medium ${shop.isAccept ? "text-green-600" : "text-red-600"
+                      }`}
                   >
                     {shop.isAccept ? "✅ Accepted" : "❌ Pending Approval"}
                   </p>
                 </div>
-                
-                <button onClick={()=>AcceptShops(shop._id)} className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition duration-300">
+
+                <button onClick={() => AcceptShops(shop._id)} className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition duration-300">
                   Approve Shop
                 </button>
               </div>

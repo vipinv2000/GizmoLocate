@@ -17,7 +17,7 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { setUser, setIsAuth } = useContext(AppContext);
+  const { setIsAdmin } = useContext(AppContext);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -31,9 +31,9 @@ const AdminLogin = () => {
       setLoading(true);
       const { data } = await Axios.post('/admin/login', formData);
 
-      if (data.success) {
-        setIsAuth(true);
-        setUser(data.user);
+      if (data.AdminName) {
+        setIsAdmin(true)
+
       }
 
       //   navigate('/admin/home');

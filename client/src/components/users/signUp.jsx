@@ -22,6 +22,7 @@ const UserSignUp = () => {
   const [profilePic, setProfilePic] = useState(null);
   const [selectedImg, setSelectedImg] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showsearch, setShowSearch] = useState(false)
 
   const navigate = useNavigate()
   const { setUser, setIsAuth } = useContext(AppContext);
@@ -81,7 +82,7 @@ const UserSignUp = () => {
 
       } else {
         console.log(searchLocation);
-        
+
         const { data } = await Axios(`/user/fetchAllLocationforRegister?location=${searchLocation}`);
         console.log("Locations:", data);
         setSearchLocationArray(data.locations)
@@ -165,14 +166,17 @@ const UserSignUp = () => {
                 placeholder="Search for your location..."
                 value={searchLocation}
                 onChange={(e) => {
-                  
+
                   setSearchLocation(e.target.value)
                 }}
+
+                onMouseEnter={() => setShowSearch(true)}
+
               />
 
               {/* Suggestions Box */}
-              {searchLocation.trim() && (
-                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-md max-h-40 overflow-y-auto">
+              {showsearch && searchLocation.trim() && (
+                <div onMouseLeave={()=>setShowSearch(false)} className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-md max-h-40 overflow-y-auto">
                   {searchLocationArray.length > 0 ? (
                     searchLocationArray.map((loc, index) => (
                       <div

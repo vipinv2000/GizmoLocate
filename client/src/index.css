@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 @import "tailwindcss";
 
 /* Hide scrollbar */
@@ -7,11 +7,12 @@
 }
 
 p {
-    font-family: "Outfit", serif;
+    font-family: 'Poppins', sans-serif;
 
 }
 
 .hide-scrollbar::-webkit-scrollbar {
     display: none;
     /* Hide scrollbar for Chrome, Safari */
+  
 }

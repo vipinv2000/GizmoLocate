@@ -23,7 +23,11 @@ import {
   PlaceOrders,
   getProducts,
   getSingleproduct,
-  UpdateChooseLocation
+  UpdateChooseLocation,
+  getCartCount,
+  getUserNotifications,
+  togglenotification,
+  recentOrder
 } from '../controller/userController.js';
 
 const router = express.Router();
@@ -47,6 +51,7 @@ router.get(
   countChange
 );
 router.get('/deleteCart/:shopId/:productId', UserPrivateRoute, deleteCart)
+router.get('/getCartCount', UserPrivateRoute, getCartCount)
 
 router.get('/placeOrder/:PaymentMode', UserPrivateRoute, PlaceOrders);
 router.get('/viewOrder', UserPrivateRoute, viewOrder);
@@ -68,5 +73,10 @@ router.get("/giveSearchResult/:item", UserPrivateRoute, giveSearchResult)
 
 router.get('/getProdects', UserPrivateRoute, getProducts)
 router.get('/getSingleproduct/:proId', UserPrivateRoute, getSingleproduct)
+
+router.get('/getUserNotifications', UserPrivateRoute, getUserNotifications)
+router.get('/togglenotification', UserPrivateRoute, togglenotification)
+
+router.get('/recentOrder',UserPrivateRoute,recentOrder)
 
 export default router;

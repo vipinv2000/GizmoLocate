@@ -66,7 +66,6 @@ const ShopHome = () => {
   const ordersRef = useRef(null);
   const usersRef = useRef(null);
   const fullfillRef = useRef(null);
-  const orderStatusRef = useRef(null);
 
   useEffect(() => {
     const fetchProducts = async () => {

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import {config} from 'dotenv'  
+import { config } from 'dotenv'
 import Admin from '../models/admin_model.js';
 
 
@@ -10,62 +10,76 @@ export const generateToken = (id, res) => {
   res.cookie('jwt', token, {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    secure: true, 
-    samesite:"None",
-
+    secure: true,
+    samesite: "None",
   });
 
   return token
 };
 
-export const calculate_total_from_userCart= (cartItem)=>{
-  
-  
+export const calculate_total_from_userCart = (cartItem) => {
 
   try {
 
-    if(cartItem.shopProduct.length===0){
-      return res.status(400).json({message:"Now your cart is empty", success:false})
+    if (cartItem.shopProduct.length === 0) {
+      return { message: "Now your cart is empty" };
     }
     // total number of product price in each shop
-    const subTotal= cartItem.shopProduct.map(item=>(
-       item.products.reduce((acc,item2)=>(
+    let no_of_carted_item = 0;
 
-       acc+(  item2.productId.price * item2.quantity)
-       ),0)
-    ))
-   
-    
-    
-    const TotalPrice= subTotal.reduce((acc,item3)=>{
-      return acc+item3
-    },0)
+    const subTotal = cartItem.shopProduct.map(item => {
+      no_of_carted_item += item.products.length
+      return item.products.reduce((acc, item2) => (
+        acc + (item2.productId.price * item2.quantity)
+      ), 0);
+    });
+
+    console.log("No _Of Products cartedd:", no_of_carted_item);
+
+
+
+    const TotalPrice = subTotal.reduce((acc, item3) => {
+      return acc + item3
+    }, 0)
     console.log(TotalPrice);
-    
-     return TotalPrice
-    
+
+    let concatenatedProductName = ""; // Initialize as an empty string
+
+    cartItem.shopProduct.forEach(item => {
+      console.log(item);
+
+      item.products.forEach(item2 => {
+        concatenatedProductName += item2.productId.productname + ", ";
+      });
+    });
+
+    const productname = concatenatedProductName.trim()
+
+
+    return { TotalPrice, cartcount: no_of_carted_item, productname }
+
   } catch (e) {
-    return res.status(500).json({message:"inernal server error"})
-    
+    return { message: "inernal server error" };
+
   }
 
 
 }
 
-export const adminSignUp=async(req,res,next)=>{
+export const adminSignUp = async (req, res, next) => {
   console.log("Calling");
-  
 
-  const check =await Admin.find()
+
+  const check = await Admin.find()
   console.log(check.length);
-  
 
-  if(check.length==0){
-      const admin= await Admin.create({
-    fullName:"Gizmolocate Admin",
-    username:"admin",
-    password:"123456"
-  })
-}
-next()
+
+  if (check.length == 0) {
+    const admin = await Admin.create({
+      fullName: "Gizmolocate Admin",
+      username: "admin",
+      password: "123456"
+    })
+  }
+  next()
 }

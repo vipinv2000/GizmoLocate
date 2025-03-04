@@ -31,4 +31,12 @@ router.get('/revenue', ShopPrivateRoute, getShopRevenue);
 router.get('/users', ShopPrivateRoute, getShopUsers);
 router.patch('/completeOrder/:orderId', ShopPrivateRoute, completeOrder);
 
-export default router;
+router.post("/signup", signup);
+router.post("/login", login);
+router.post("/logout", logout);
+router.post("/add-product", ShopPrivateRoute, addProduct);
+router.get("/completeOrder/:userId/:id", ShopPrivateRoute, completeOrder);
+
+
+
+export default router

@@ -1,66 +1,110 @@
 import Admin from "../models/admin_model.js";
 import jwt from 'jsonwebtoken'
-import {config} from 'dotenv'
+import { config } from 'dotenv'
 import Shop from "../models/shop_model.js";
+import User from "../models/user_model.js";
 config()
 
-export const login=async(req,res)=>{
-    const {username,password}=req.body
-    try {
+export const login = async (req, res) => {
+  const { username, password } = req.body
+  try {
 
-        if ( !username || !password) {
-            return res.status(400).json({ message: 'All fields are required' });
-          }
-      
-          if (password.length < 6) {
-            return res
-              .status(400)
-              .json({ message: 'Password must be at least 6 characters' });
-          }
-          const admin = await Admin.findOne({username:username,password:password})
-          if(!admin){
-            return  res.status(400).json({message: "no admin found", success:false})
-          }
-          const id=admin._id
-           const token =  jwt.sign( {id} , process.env.JWT_SECRET, { expiresIn: '7d' });
-           console.log((token));
-           
-           res.clearCookie()
-            res.cookie('Admin_jwt', token, {
-              maxAge: 7 * 24 * 60 * 60 * 1000,
-              httpOnly: true,
-              samesite:"strict",
-          
-            });
-          return res.status(200).json({AdminName:admin.username,success:true})
-
-    } catch (e) {
-        return res.status(500).json(e.messsage)
+    if (!username || !password) {
+      return res.status(400).json({ message: 'All fields are required' });
     }
-}
 
-export const listRequestedShop=async(req,res)=>{
-
-try {
-    const listshop= await Shop.find({isAccept:false})
-    if(listshop.length==0){
-        return res.status(400).json({success:false,message:"No incomming request"})
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: 'Password must be at least 6 characters' });
     }
-    return res.status(200).json({listshop,success:true,message:null})
-} catch (e) {
+    const admin = await Admin.findOne({ username: username, password: password })
+    if (!admin) {
+      return res.status(400).json({ message: "no admin found", success: false })
+    }
+    const id = admin._id
+    const token = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    console.log((token));
+
+    res.clearCookie()
+    res.cookie('Admin_jwt', token, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      samesite: "strict",
+
+    });
+    return res.status(200).json({ AdminName: admin.username, success: true })
+
+  } catch (e) {
     return res.status(500).json(e.messsage)
-}
+  }
 }
 
-export const logout=async(req,res)=>{}
-export const acceptReq=async(req,res)=>{
-      const {shopId}=req.params
-      console.log(shopId);
-      
-    try {
-     const shop = await Shop.findByIdAndUpdate({_id:shopId},{isAccept:true})
-     return res.status(200).json({message:`Request from ${shop.shopname} is accepted`})
-    } catch (e) {
-        return res.status(500).json(e.messsage) 
+export const listRequestedShop = async (req, res) => {
+
+  try {
+    const listshop = await Shop.find({ isAccept: false })
+    if (listshop.length == 0) {
+      return res.status(200).json({ success: false, message: "No incomming requests" })
     }
+    return res.status(200).json({ listshop, success: true, message: null })
+  } catch (e) {
+    return res.status(500).json(e.messsage)
+  }
+}
+
+export const logout = async (req, res) => {
+  try {
+    res.cookie('Admin_jwt', '', { maxAge: 0 });
+    res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.log('Error in logout controller', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+export const acceptReq = async (req, res) => {
+  const { shopId } = req.params
+  console.log(shopId);
+
+  try {
+    const shop = await Shop.findByIdAndUpdate({ _id: shopId }, { isAccept: true })
+    return res.status(200).json({ message: `Request from ${shop.shopname} is accepted` })
+  } catch (e) {
+    return res.status(500).json(e.messsage)
+  }
+}
+
+export const getAdminobject = (req, res) => {
+  try {
+    if (!req.admin) {
+      return res.status(404).json({ message: "Admin Not valid", success: false });
+    }
+    return res.status(200).json({ admin: { name: req.admin.fullName }, success: true });
+  } catch (error) {
+    return res.status(500).json(e.messsage)
+  }
+}
+
+export const ListShops = async (req, res) => {
+  try {
+    const shops = await Shop.find();
+    if (shops.length === 0) {
+      return res.status(404).json({ message: "Their is no shops found", success: false });
+    }
+    return res.status(200).json({ shops, success: true });
+  } catch (error) {
+    return res.status(500).json(e.messsage)
+  }
+}
+
+export const ListUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    if (users.length === 0) {
+      return res.status(404).json({ message: "Their is no users found", success: false });
+    }
+    return res.status(200).json({ users, success: true });
+  } catch (error) {
+    return res.status(500).json(e.messsage)
+  }
 }

@@ -405,12 +405,12 @@ export const completeOrder = async (req, res) => {
   }
 };
 
-// Revenue Controller
+
 export const getShopRevenue = async (req, res) => {
   const shopId = req.shop._id;
   
   try {
-    // Find all orders that have this shop's products and are delivered
+  
     const orders = await Order.find({
       'shopProduct.shopId': shopId,
       'shopProduct.isDelivered': true
@@ -418,16 +418,16 @@ export const getShopRevenue = async (req, res) => {
     
     let totalRevenue = 0;
     
-    // Calculate total revenue from delivered orders
+   
     orders.forEach(order => {
       const shopProductIndex = order.shopProduct.findIndex(
         item => item.shopId.toString() === shopId.toString() && item.isDelivered
       );
       
       if (shopProductIndex !== -1 && order.shopProduct[shopProductIndex].products) {
-        // Calculate revenue from this order's products
+      
         order.shopProduct[shopProductIndex].products.forEach(product => {
-          // Get price either directly from product or from populated productId
+         
           const price = product.price || (product.productId && product.productId.price) || 0;
           const quantity = product.quantity || 1;
           
@@ -454,17 +454,17 @@ export const getShopUsers = async (req, res) => {
   const shopId = req.shop._id;
   
   try {
-    // Find all orders that have this shop's products
+  
     const orders = await Order.find({
       'shopProduct.shopId': shopId
     }).populate('user', 'fullName email phone address createdAt')
-      .populate('shopProduct.products.productId', 'price'); // Populate product details to get price
+      .populate('shopProduct.products.productId', 'price'); 
     
-    // Extract unique users and their order data
+   
     const userMap = new Map();
     
     orders.forEach(order => {
-      // Skip orders without user information
+      
       if (!order.user || !order.user._id) {
         return;
       }
@@ -475,11 +475,11 @@ export const getShopUsers = async (req, res) => {
       );
       
       if (shopProductIndex !== -1 && order.shopProduct[shopProductIndex].products) {
-        // Calculate amount spent on this order
+      
         let orderTotal = 0;
         
         order.shopProduct[shopProductIndex].products.forEach(product => {
-          // Get price either directly from product or from populated productId
+         
           const price = product.price || (product.productId && product.productId.price) || 0;
           const quantity = product.quantity || 1;
           

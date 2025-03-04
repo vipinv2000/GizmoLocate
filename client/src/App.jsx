@@ -52,40 +52,23 @@ const App = () => {
           path="/user"
           element={
             <ProductContextProvider>
-              {' '}
-              <UserBasePage />{' '}
+              <UserBasePage />
             </ProductContextProvider>
           }
         >
-          <Route
-            path="/user/home"
-            element={isAuth ? <UserHome /> : <Navigate to="/user/login" />}
-          />
-          <Route
-            path="/user/profile"
-            element={isAuth ? <Profile_page /> : <Navigate to="/user/login" />}
-          />
-          <Route
-            path="/user/orders"
-            element={isAuth ? <View_orders /> : <Navigate to="/user/login" />}
-          />
+          <Route path="/user/home" element={<UserHome />} />
+          <Route path="/user/profile" element={<Profile_page />} />
+          <Route path="/user/orders" element={<View_orders />} />
           <Route
             path="/user/viewCart"
             element={
               <CartContextProvider>
-                {' '}
-                <ViewCart />{' '}
+                <ViewCart />
               </CartContextProvider>
             }
           />
-          <Route
-            path="/user/wishlist"
-            element={isAuth ? <Wishlist_page /> : <Navigate to="/user/login" />}
-          />
-          <Route
-            path="/user/settings"
-            element={isAuth ? <Settings_page /> : <Navigate to="/user/login" />}
-          />
+          <Route path="/user/wishlist" element={<Wishlist_page />} />
+          <Route path="/user/settings" element={<Settings_page />} />
           <Route path="/user/viewProduct/:proId" element={<Product_page />} />
         </Route>
 

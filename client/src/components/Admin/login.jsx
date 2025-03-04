@@ -1,8 +1,8 @@
-import  { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import { Eye, EyeOff, Lock, Mail, User, Camera } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Axios } from '../../utils/Axiox';
+import { Axios } from '../../utils/Axiox.js';
 
 import { AppContext } from '../../context/AppContext.jsx';
 import { motion } from 'framer-motion';
@@ -31,12 +31,12 @@ const AdminLogin = () => {
       setLoading(true);
       const { data } = await Axios.post('/admin/login', formData);
 
-      if(data.success){
-        setIsAuth(true)
-        setUser(data.user)
+      if (data.success) {
+        setIsAuth(true);
+        setUser(data.user);
       }
 
-    //   navigate('/admin/home');
+      //   navigate('/admin/home');
       toast.success('Successfully logged in !');
       console.log('User Data:', data);
       console.log('User ffData:', formData);

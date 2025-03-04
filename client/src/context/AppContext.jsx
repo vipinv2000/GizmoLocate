@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from 'react';
 import { Axios } from '../utils/Axiox';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export const AppContext = createContext(null);
 
@@ -13,6 +14,8 @@ export const AppContextProvider = ({ children }) => {
   const [refresh, setRefresh] = useState(false);
   const [cartCount, setCartcount] = useState(0)
   const [notification, setNotifications] = useState({})
+  const [isadmin, setIsAdmin] = useState(false)
+  const [selectedtab, setSelectedTab] = useState(0)
 
   const navigate = useNavigate()
 
@@ -46,10 +49,29 @@ export const AppContextProvider = ({ children }) => {
       console.log("Notifications", data);
       if (data.success) {
         setNotifications(data.Notifications)
-      } 
+      }
 
     } catch (error) {
       console.error('Error during authentication check:', error);
+    }
+  }
+
+  const CheckAdninAuth = async () => {
+    try {
+      const { data } = await Axios.get('/admin/adminAuth');
+      console.log(data, "Addddddddddddddd");
+
+      if (data.success) {
+        setIsAdmin(true)
+        console.log("Admin dataaaa", data);
+      }
+      else {
+        navigate('/admin/login')
+      }
+    } catch (error) {
+      navigate('/admin/login')
+      console.log(Error);
+
     }
   }
 
@@ -57,12 +79,13 @@ export const AppContextProvider = ({ children }) => {
     checkAuth();
     Get_carty_count()
     get_available_notification()
+    CheckAdninAuth()
   }, [refresh]); // Runs once on mount to check auth
 
   // This useEffect will log updated values of `user` and `isAuth`
   useEffect(() => {
     console.log('Updated state:', { user, isAuth });
-  }, [user, isAuth, toggleMenu, ennableSearchbar, refresh]);
+  }, [user, isAuth, toggleMenu, ennableSearchbar, refresh, isadmin]);
 
   const value = {
     name: 'vipin',
@@ -81,7 +104,11 @@ export const AppContextProvider = ({ children }) => {
     cartCount,
     setCartcount,
     notification,
-    setNotifications
+    setNotifications,
+    isadmin,
+    setIsAdmin,
+    selectedtab,
+     setSelectedTab
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

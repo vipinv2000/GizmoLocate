@@ -210,7 +210,7 @@ export const viewCart = async (req, res) => {
       .populate('shopProduct.shopId', 'shopname location phonenumber')
       .populate(
         'shopProduct.products.productId',
-        'productname price productimage category productType'
+        'productname price productimage category productType modelnumber'
       );
 
     if (!showCart) {
@@ -225,7 +225,7 @@ export const viewCart = async (req, res) => {
     if (message) {
       return res
         .status(400)
-        .json({ message:message,sucess:false});
+        .json({ message: message, sucess: false });
     }
 
     return res
@@ -419,6 +419,8 @@ export const ListWishlist = async (req, res) => {
   const userId = req.user._id
   try {
     const wishlist = await Wishlist.findOne({ user: userId }).populate('products');
+    console.log("Wishhh", wishlist);
+
 
     if (!wishlist) {
       return res.status(404).json({ message: 'Wishlist not found' });
@@ -670,6 +672,8 @@ export const getProducts = async (req, res) => {
 
   try {
     const AllProducts = await Product.find().populate("shop")
+    console.log("Apppple", AllProducts);
+
 
     if (AllProducts.length == 0) {
       return res.status(404).json({ message: "Product not found " });
@@ -798,4 +802,24 @@ export const togglenotification = async (req, res) => {
     return res.status(500).json({ message: 'Server error', success: false });
   }
 }
+
+export const recentOrder = async (req, res) => {
+  const userId = req.user._id;
+  try {
+    // Find the last order for the specific user, sorted by _id (latest first)
+    const lastOrder = await Order.findOne({ user: userId }).sort({ _id: -1 }).populate('shopProduct.shopId').populate('shopProduct.products.productId');
+
+    if (!lastOrder) {
+      return res.status(404).json({ success: false, message: "No orders found" });
+    }
+
+    // Send the most recent order
+    return res.status(200).json({ success: true, order: lastOrder });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 

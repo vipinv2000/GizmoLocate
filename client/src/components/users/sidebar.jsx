@@ -8,7 +8,7 @@ const User_Sidebar = () => {
     const navigate = useNavigate()
 
     return (
-        <div className="w-full relative h-full bg-white shadow-md ">
+        <div className="w-full relative h-full transition-all duration-300  shadow-md ">
 
             <nav className="">
                 {[
@@ -28,21 +28,21 @@ const User_Sidebar = () => {
                         className={` w-full flex items-center ${!toggleMenu && ` justify-center`} px-6 py-3 text-gray-700  hover:bg-gray-100 ${activeTab === item.id ? 'bg-gray-100 text-black font-medium' : ''
                             }`}
                     >
-                        <item.icon className={`h-5 w-5  ${toggleMenu && ` mr-3`}`} />
+                        <item.icon className={`h-5 w-5  ${toggleMenu && ` mr-3 `}`} />
                         {
                             toggleMenu && item.name
                         }
                         {
-                            item.id == "cart" && toggleMenu && <div className='text-sm text-white font-extrabold ml-2 bg-red-700 rounded-full px-2'>
+                            item.id == "cart" && toggleMenu && <div className='text-sm text-white font-extrabold ml-2 bg-red-700 opacity-70 rounded-full px-2'>
                                  <p>{cartCount == 0 ? " " : cartCount}</p>
                             </div>
                         }
                     </button>
                 ))}
             </nav>
-            <div className="absolute bottom-6 w-full px-6 pb-4">
-                <button className={`w-full flex items-center ${!toggleMenu && 'justify-center'} text-gray-700 hover:text-black`}>
-                    <LogOut className="h-5 w-5 mr-3" />
+            <div className={`absolute bottom-6 w-full ${toggleMenu ? "px-6" : "px-5"}  pb-4 `}>
+                <button className={`bg- w-full flex items-center ${!toggleMenu && 'justify-center'} text-gray-700 hover:text-black`}>
+                    <LogOut className=" mr-2" />
                     {
                         toggleMenu && "Logout"
                     }

@@ -33,7 +33,7 @@ const ViewOrders = () => {
 
     return (
         <div className="container mx-auto p-4 mb-24">
-            <h2 className="text-2xl font-bold text-center mb-4">My Orders</h2>
+            <p className="text-center mb-4 text-[40px] text-[#292f3f] font-extrabold" style={{wordSpacing:"17px",letterSpacing:"7px"}}>Orders and Purchases</p>
 
             {loading && <p className="text-center text-blue-500">Loading orders...</p>}
             {error && <p className="text-center text-red-500">{error}</p>}
@@ -69,7 +69,7 @@ const ViewOrders = () => {
                                         )}
                                         <div>
                                             <h3 className="text-lg font-semibold">{shopItem.shopId?.shopname || "Unknown Shop"}</h3>
-                                            <p className="text-gray-500">{shopItem.shopId?.location || "Unknown Location"}</p>
+                                            <p className="text-gray-500">{shopItem.shopId?.locationName || "Unknown Location"}</p>
                                         </div>
                                     </div>
 

@@ -26,7 +26,8 @@ import {
   UpdateChooseLocation,
   getCartCount,
   getUserNotifications,
-  togglenotification
+  togglenotification,
+  recentOrder
 } from '../controller/userController.js';
 
 const router = express.Router();
@@ -75,5 +76,7 @@ router.get('/getSingleproduct/:proId', UserPrivateRoute, getSingleproduct)
 
 router.get('/getUserNotifications', UserPrivateRoute, getUserNotifications)
 router.get('/togglenotification', UserPrivateRoute, togglenotification)
+
+router.get('/recentOrder',UserPrivateRoute,recentOrder)
 
 export default router;

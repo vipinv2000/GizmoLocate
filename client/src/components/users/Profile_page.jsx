@@ -6,58 +6,43 @@ import {
     Mail,
     Phone,
     Edit,
+    ChevronsDown,
 } from 'lucide-react';
+import { Axios } from '../../utils/Axiox.js';
+import toast from 'react-hot-toast';
+import { motion } from "framer-motion";
+
+
 const Profile_page = () => {
 
+    const [recentOrders, setRecentOrders] = useState([])
+    const [currentUser, setcurrentUser] = useState();
     const { user } = useContext(AppContext);
 
-    const [currentUser, setcurrentUser] = useState();
     useEffect(() => {
         if (user) {
             setcurrentUser(user);
+            fetchRecendOrders()
             console.log('joljfoj', user);
         }
     }, [user]);
 
     console.log('currentUser', currentUser);
+    const fetchRecendOrders = async () => {
+        try {
+            const { data } = await Axios.get('/user/recentOrder');
+            console.log("Resend Orders", data);
+            setRecentOrders(data?.order?.shopProduct)
 
-    const userProfile = {
-        name: 'Sarah Anderson',
-        email: 'sarah.anderson@example.com',
-        phone: '+1 (555) 123-4567',
-        address: '123 Fashion Street, New York, NY 10001',
-        memberSince: 'March 2023',
-        avatar:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=150&q=80',
-    };
-
-    const recentOrders = [
-        {
-            id: 1,
-            product: 'Designer Watch',
-            date: '2024-03-10',
-            status: 'Delivered',
-            amount: '$299.99',
-        },
-        {
-            id: 2,
-            product: 'Leather Bag',
-            date: '2024-03-09',
-            status: 'In Transit',
-            amount: '$199.99',
-        },
-        {
-            id: 3,
-            product: 'Sunglasses',
-            date: '2024-03-08',
-            status: 'Processing',
-            amount: '$149.99',
-        },
-    ];
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Something went wrong!";
+            toast.error(errorMessage);
+        }
+    }
 
 
     return (
-        <div className="p-4 w-full">
+        <div className=" w-full p-6">
             {/* Profile Header */}
             <div className="rounded-xl shadow-sm mb-8 bg-white">
                 <div className="p-8">
@@ -110,7 +95,7 @@ const Profile_page = () => {
                                 <Phone className="h-5 w-5 text-gray-400 mr-3" />
                                 <div>
                                     <p className="text-sm text-gray-500">Phone</p>
-                                    <p className="text-gray-900">+91 {currentUser?.email}</p>
+                                    <p className="text-gray-900">+91 {currentUser?.phoneNumber}</p>
                                 </div>
                             </div>
                             <div className="flex items-center">
@@ -126,88 +111,64 @@ const Profile_page = () => {
                     </div>
 
                     {/* Recent Orders */}
-                    <div className="bg-white rounded-xl shadow-sm mt-8">
-                        <div className="p-6 border-b border-gray-100">
+                    <div className="bg-white rounded-xl shadow-sm mt-8  ">
+                        <div className=" p-6 border-b border-gray-100 flex justify-between ">
                             <h2 className="text-lg font-semibold text-gray-900">
                                 Recent Orders
                             </h2>
+                            <motion.div
+                                animate={{ y: [0, 5, 0] }} // Moves down and back up
+                                transition={{
+                                    duration: 1, // Time for one cycle
+                                    repeat: Infinity, // Infinite loop
+                                    ease: "easeInOut", // Smooth animation
+                                }}
+                            >
+                                <ChevronsDown size={32} className="text-black" />
+                            </motion.div>
                         </div>
-                        <div className="divide-y divide-gray-100">
+                        <div className="bg-white divide-y rounded-xl divide-gray-100 h-[280px] overflow-y-scroll hide-scrollbar ">
                             {recentOrders.map(order => (
-                                <div
-                                    key={order.id}
-                                    className="p-6 flex items-center justify-between"
-                                >
-                                    <div>
-                                        <p className="font-medium text-gray-900">
-                                            {order.product}
-                                        </p>
-                                        <p className="text-sm text-gray-500">{order.date}</p>
-                                    </div>
-                                    <div className="flex items-center space-x-4">
-                                        <span className="text-sm font-medium text-gray-900">
-                                            {order.amount}
-                                        </span>
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-sm font-medium ${order.status === 'Delivered'
-                                                ? 'bg-green-100 text-green-800'
-                                                : order.status === 'In Transit'
-                                                    ? 'bg-blue-100 text-blue-800'
+                                order.products.map(pro => (
+                                    <div
+                                        key={order.id}
+                                        className="p-6 flex items-center justify-between"
+                                    >
+                                        <div>
+                                            <p className="font-medium text-gray-900">
+                                                {pro.productId.productname}
+                                            </p>
+                                            <p className="text-sm text-gray-500"> {pro.date}</p>
+                                        </div>
+                                        <div className="flex items-center space-x-4">
+                                            <span className="text-sm font-medium text-gray-900">
+                                                ₹ {pro.productId.price}
+                                            </span>
+                                            <span
+                                                className={`px-3 py-1 rounded-full text-sm font-medium ${order.isDelivered
+                                                    ? 'bg-green-100 text-green-800'
                                                     : 'bg-yellow-100 text-yellow-800'
-                                                }`}
-                                        >
-                                            {order.status}
-                                        </span>
+                                                    }`}
+                                            >
+                                                {order.isDelivered ? "Delivered" : "Pending"}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
+                                ))
+
+
                             ))}
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm mt-8">
-                        <div className="p-6 border-b border-gray-100">
-                            <h2 className="text-lg font-semibold text-gray-900">
-                                Recent Orders
-                            </h2>
-                        </div>
-                        <div className="divide-y divide-gray-100">
-                            {recentOrders.map(order => (
-                                <div
-                                    key={order.id}
-                                    className="p-6 flex items-center justify-between"
-                                >
-                                    <div>
-                                        <p className="font-medium text-gray-900">
-                                            {order.product}
-                                        </p>
-                                        <p className="text-sm text-gray-500">{order.date}</p>
-                                    </div>
-                                    <div className="flex items-center space-x-4">
-                                        <span className="text-sm font-medium text-gray-900">
-                                            {order.amount}
-                                        </span>
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-sm font-medium ${order.status === 'Delivered'
-                                                ? 'bg-green-100 text-green-800'
-                                                : order.status === 'In Transit'
-                                                    ? 'bg-blue-100 text-blue-800'
-                                                    : 'bg-yellow-100 text-yellow-800'
-                                                }`}
-                                        >
-                                            {order.status}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+
                 </div>
 
                 {/* Account Settings */}
                 <div className="space-y-8">
                     <div className="bg-white rounded-xl shadow-sm p-6">
-                        <h2 className="text-5xl font-bold text-gray-900 mb-6">
+                        <p className="text-5xl font-bold text-gray-900 mb-6">
                             Top shops
-                        </h2>
+                        </p>
                         <div className="space-y-4">
                             <button className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50">
                                 Shop1

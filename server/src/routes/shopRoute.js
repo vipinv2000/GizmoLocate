@@ -10,7 +10,7 @@ router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);
 router.post("/add-product",ShopPrivateRoute ,addProduct);
-router.get("/completeOrder/:userId",ShopPrivateRoute ,completeOrder);
+router.get("/completeOrder/:userId/:id",ShopPrivateRoute ,completeOrder);
 
 
 

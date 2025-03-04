@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import User from '../models/user_model.js'
 import Shop from '../models/shop_model.js';
 import { config } from 'dotenv';
+import Admin from '../models/admin_model.js';
 
 config()
 
@@ -66,6 +67,33 @@ export const ShopPrivateRoute = async (req, res, next) => {
             return res.status(401).json({ message: "User not found" })
         }
         req.shop = shop
+        next()
+    } catch (e) {
+        console.log("Error in shopPrivateRoute middleware: ", e.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const AdminPrivateRoute = async (req, res, next) => {
+    try {
+
+        const token = req.cookies.Admin_jwt
+
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorised-No token provided" })
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+        if (!decoded) {
+            return res.status(401).json({ message: "Unauthorised -Inavlid token" })
+
+        }
+
+        const admin = await Admin.findById(decoded.id)
+        if (!admin) {
+            return res.status(401).json({ message: "User not found" })
+        }
+        req.admin = admin
         next()
     } catch (e) {
         console.log("Error in shopPrivateRoute middleware: ", e.message);

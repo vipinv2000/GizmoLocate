@@ -70,7 +70,7 @@ const Searchproducts = () => {
     return (
         <div>
             <div className='w-full relative' onMouseLeave={() => setSearchFocus(false)} onMouseEnter={() => setSearchFocus(true)}>
-                <div className='flex items-center justify-center gap-3 w-full h-[3.2rem] px-4 py-2.5 rounded-full border border-gray-200 '>
+                <div className='flex items-center justify-center gap-3 w-full h-[2.7rem] px-4 py-2.5 rounded-full border border-gray-200 '>
                     <IoSearch className='text-gray-400 size-5' />
                     <input
                         onChange={(e) => {
@@ -80,7 +80,7 @@ const Searchproducts = () => {
                             setSearchResult(e.target.value)
                         }}
                         value={searchResult}
-                        className='flex items-center bg-transparent outline-none text-black w-full '
+                        className='flex items-center bg-transparent outline-none text-black w-full'
                         type="text"
                         placeholder='Find products'
                     />

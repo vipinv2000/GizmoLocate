@@ -1,128 +1,134 @@
-// import { useState, useContext } from 'react';
-// import { Axios } from '../../utils/Axiox';
-// import { AppContext } from '../../context/AppContext.jsx';
-// import { useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import  { useContext, useState } from 'react';
+import { Eye, EyeOff, Lock, Mail, User, Camera } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { Axios } from '../../utils/Axiox';
 
-// const ShopLogin = () => {
-//   const { setIsAuth, setUser,isAuth } = useContext(AppContext);
-//   const [formData, setFormData] = useState({ email: '', password: '' });
-//   const [error, setError] = useState('');
-//   const [loading, setLoading] = useState(false);
-//   const navigate = useNavigate()
-
-//   const handleChange = e => {
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = async e => {
-//     e.preventDefault();
-//     setError('');
-//     setLoading(true);
-
-//     try {
-//       const { data } = await Axios.post('/shop/login', formData);
-//       if (data.success) {
-//         setIsAuth(true);
-//         setUser(data.user);
-//         console.log(data.user);
-        
-//         console.log('Login successful:', data.user);
-//       } else {
-//         setError(data.message || 'Login failed');
-//       }
-//     } catch (err) {
-//       setError(err.response?.data?.message || 'An error occurred');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//   if(isAuth){
-
-//   }
-   
-//   }, [])
-  
-
-//   return (
-//     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-//       <div className="w-full max-w-sm p-8 bg-white rounded-lg shadow-lg">
-//         <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6">
-//           Login
-//         </h2>
-
-//         {error && <div className="text-red-500 text-center mb-4">{error}</div>}
-
-//         <form onSubmit={handleSubmit}>
-//           <div className="mb-4">
-//             <label
-//               htmlFor="email"
-//               className="block text-sm font-medium text-gray-600"
-//             >
-//               Email
-//             </label>
-//             <input
-//               type="email"
-//               name="email"
-//               id="email"
-//               className="w-full p-3 mt-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               placeholder="Email"
-//               value={formData.email}
-//               onChange={handleChange}
-//               required
-//             />
-//           </div>
-
-//           <div className="mb-6">
-//             <label
-//               htmlFor="password"
-//               className="block text-sm font-medium text-gray-600"
-//             >
-//               Password
-//             </label>
-//             <input
-//               type="password"
-//               name="password"
-//               id="password"
-//               className="w-full p-3 mt-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               placeholder="Password"
-//               value={formData.password}
-//               onChange={handleChange}
-//               required
-//             />
-//           </div>
-
-//           <button
-//             type="submit"
-//             className="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg focus:outline-none hover:bg-blue-600"
-//             disabled={loading}
-//           >
-//             {loading ? 'Logging in...' : 'Login'}
-//           </button>
-//         </form>
-
-//         <div className="mt-4 text-center text-sm text-gray-600">
-//           <p>
-//             Don't have an account?{' '}
-//             <a href="/signup" className="text-blue-500 hover:text-blue-700">
-//               Sign up
-//             </a>
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ShopLogin;
-import React from 'react'
+import { AppContext } from '../../context/AppContext.jsx';
+import { motion } from 'framer-motion';
 
 const ShopLogin = () => {
-  return (
-    <div>ShopLogin</div>
-  )
-}
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
 
-export default ShopLogin
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+   const { setShop, setIsShopAuth } = useContext(AppContext);
+  
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    if (!formData.email.trim()) return toast.error('Email is required');
+
+    if (!formData.password) return toast.error('Password is required');
+    if (formData.password.length < 5)
+      return toast.error('Password must be at least 5 characters');
+
+    try {
+      setLoading(true);
+      const { data } = await Axios.post('/shop/login', formData);
+      console.log('testing',data);
+
+      navigate('/shop/home');
+      toast.success('Successfully logged in !');
+      if (data.success) {
+        setIsShopAuth(true)
+        setShop(data.shop)
+      
+      console.log('User Data:', data);
+    }
+      console.log('User ffData:', formData);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Login failed!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center text-2xl font-bold text-gray-700"
+        >
+        Shop Login In
+        </motion.div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email */}
+          <div>
+            <label className="block text-gray-700 font-medium">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 size-5" />
+              <input
+                type="email"
+                className="w-full h-12 border border-gray-300 rounded-lg pl-10 pr-3 focus:ring-2 focus:ring-blue-500 transition"
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={e =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-gray-700 font-medium">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 size-5" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className="w-full h-12 border border-gray-300 rounded-lg pl-10 pr-10 focus:ring-2 focus:ring-blue-500 transition"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={e =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-5" />
+                ) : (
+                  <Eye className="size-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full py-3 text-white font-semibold rounded-lg bg-blue-500 hover:bg-blue-600 transition"
+          >
+            {loading ? 'logging In...' : 'Log In'}
+          </button>
+
+          {/* Sign In Link */}
+          <p className="text-center text-gray-600 text-sm mt-4">
+            Dont't have an account?{' '}
+            <Link
+              to="/user/signUp"
+              className="text-blue-500 font-semibold hover:underline"
+            >
+              signUp
+            </Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default ShopLogin;

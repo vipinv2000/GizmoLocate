@@ -23,24 +23,33 @@ import Notification_Page from './components/users/Notification_Page.jsx';
 import ListShops from './components/Admin/ListShops.jsx';
 import ListUsers from './components/Admin/ListUsers.jsx';
 import Admin_root from './components/Admin/Admin_root.jsx';
-
-// Usage
+import ShopSignUp from './components/shops/signUp.jsx';
 
 const App = () => {
-  const { name, user, isAuth, isadmin } = useContext(AppContext);
+  const { name, user, isAuth, isadmin,isShopAuth } = useContext(AppContext);
   console.log(isAuth);
   return (
     <>
       <Routes>
-        <Route path="/" element={<ShopHome />} />
+        <Route path="/shop/home" element={<ShopHome />} />
+        <Route
+          path="/shop/signup"
+          element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopSignUp />}
+        />
         <Route
           path="/shop/login"
-          element={isAuth ? <Navigate to="/" /> : <ShopLogin />}
+          element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopLogin />}
         />
-        {/* <Route path="/user/signup"element={isAuth ? <Navigate to="/" /> : <UserSignUp />} /> */}
 
-        <Route path="/user/signup" element={isAuth ? <Navigate to="/user/home" /> : <UserSignUp />} />
-        <Route path="/user/login" element={isAuth ? <Navigate to="/user/home" /> : <UserLogin />} />
+
+        <Route
+          path="/user/signup"
+          element={isAuth ? <Navigate to="/user/home" /> : <UserSignUp />}
+        />
+        <Route
+          path="/user/login"
+          element={isAuth ? <Navigate to="/user/home" /> : <UserLogin />}
+        />
 
         <Route path='/user' element={<ProductContextProvider> <UserBasePage /> </ProductContextProvider>}>
           {/* Default route when /user is accessed */}
@@ -55,9 +64,6 @@ const App = () => {
           <Route path="viewProduct/:proId" element={<Product_page />} />
           <Route path="viewNotification" element={<Notification_Page />} />
         </Route>
-
-
-
 
         <Route path="/admin/login" element={isadmin ? <Navigate to="/admin" /> : <AdminLogin />} />
 

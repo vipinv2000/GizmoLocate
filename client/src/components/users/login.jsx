@@ -30,7 +30,7 @@ const UserLogin = () => {
     try {
       setLoading(true);
       const { data } = await Axios.post('/user/login', formData);
-
+      console.log('testing usr',data);
       if(data.success){
         setIsAuth(true)
         setUser(data.user)

@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { Eye, EyeOff, Lock, Mail, User, Camera } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Axios } from '../../utils/Axiox';
+import { Axios } from '../../utils/Axiox.js';
 
 import { AppContext } from '../../context/AppContext.jsx';
 import { motion } from 'framer-motion';
@@ -30,8 +30,10 @@ const AdminLogin = () => {
     try {
       setLoading(true);
       const { data } = await Axios.post('/admin/login', formData);
+
       if (data.AdminName) {
         setIsAdmin(true)
+
       }
 
       //   navigate('/admin/home');

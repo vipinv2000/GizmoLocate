@@ -67,15 +67,23 @@ const Product_card = ({ pro }) => {
             <div className=' h-full flex flex-col' onClick={() => navigate(`/user/viewProduct/${pro._id}`)}>
 
                 <img src={pro.productimage} alt={pro.productname} className="w-full h-40 object-cover" />
-                <div className="h-full   text-center flex flex-col gap-1 items-center">
-                    <p className='text-xs tracking-widest mt-2' style={{ letterSpacing: "7px" }}>{pro.productType}</p>
-                    <p className="text-lg font-semibold text-[33px]">{pro.productname}</p>
-                    <div className='bg-black h-[1px] w-[30%]'></div>
-                    <div className=' w-full flex pb-2'>
-                        <div className='w-[16%] flex justify-center'>
-                            <img className='w-10 h-10 rounded-full mt-2 border border-gray-400' src="https://img.freepik.com/free-vector/shop-with-sign-open-design_23-2148544029.jpg" alt="shop" />
+                <div className="h-full    flex flex-col gap-1  ">
+
+                    <div className=' w-full flex flex-col pb-2 '>
+                        <div className='flex '>
+                            <div className=' w-[16%] flex  justify-start'>
+                                <img className='w-10 h-10 rounded-full mt-2 border border-gray-400' src="https://img.freepik.com/free-vector/shop-with-sign-open-design_23-2148544029.jpg" alt="shop" />
+                            </div>
+                            <div className='w-[84%] text-start'>
+                                <div className=''>
+                                    <p className='text-xs tracking-widest mt-2' style={{ letterSpacing: "7px" }}>{pro.productType}</p>
+                                    <p className="text-lg font-semibold text-[20px]">{pro.productname}</p>
+                                    <div className='bg-black h-[1px] w-[30%]'></div>
+                                </div>
+
+                            </div>
                         </div>
-                        <div className='w-[84%] text-start'>
+                        <div>
                             <p className="text-lg font-semibold text-[13px] italic mt-2">{pro.modelnumber}</p>
                             <p className="text-gray-600 text-sm italic" style={{
                                 fontSize: '10px',

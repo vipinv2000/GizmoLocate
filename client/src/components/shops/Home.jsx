@@ -202,7 +202,7 @@ const ShopHome = () => {
     {
       title: 'Total Products',
       value: productList.length,
-      icon:  () => <Boxes size={28} className="text-white" />, 
+      icon: () => <Boxes size={28} className="text-white" />,
       trend: 'Click to CheckOut the products..',
       color: 'bg-blue-500',
       onClick: () => {
@@ -229,7 +229,7 @@ const ShopHome = () => {
     {
       title: 'Pending Orders',
       value: pendingOrdersCount,
-      icon: () => <HourglassIcon size={24} className="text-white" />, 
+      icon: () => <HourglassIcon size={24} className="text-white" />,
       trend: 'Click to view pending orders',
       color: 'bg-red-500',
       onClick: () => {
@@ -265,19 +265,19 @@ const ShopHome = () => {
       icon: TrendingUp,
       title: 'Order Status',
       description: 'Check how far to go...',
-      onClick:async()=>{
-       try {
-        const { data } = await Axios.get('/shop/fullfilledOrders');
-        setFullfilledOrdersCount(data.totaldeliveredOrders || 0);
-        setShowOrderStatus(true)
-        setShowFullfilledOrders(false);
-      setShowPendingOrders(false);
-      setShowProducts(false);
-      setShowUsers(false);
-        
-       } catch (e) {
-        toast.error("Retry")
-       }
+      onClick: async () => {
+        try {
+          const { data } = await Axios.get('/shop/fullfilledOrders');
+          setFullfilledOrdersCount(data.totaldeliveredOrders || 0);
+          setShowOrderStatus(true)
+          setShowFullfilledOrders(false);
+          setShowPendingOrders(false);
+          setShowProducts(false);
+          setShowUsers(false);
+
+        } catch (e) {
+          toast.error("Retry")
+        }
       }
     },
   ];
@@ -319,12 +319,11 @@ const ShopHome = () => {
   };
 
   return <>
-  <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div
-          className={`flex justify-between items-center mb-8 transition-all duration-500 ${
-            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
-          }`}
+          className={`flex justify-between items-center mb-8 transition-all duration-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
+            }`}
         >
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Shop Dashboard</h1>
@@ -349,16 +348,15 @@ const ShopHome = () => {
 
         {/* Stats */}
         {!isAddingProduct && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 bg">
             {stats.map((stat, index) => (
               <div
                 key={stat.title}
                 onClick={stat.onClick || null}
-                className={`bg-white rounded-xl shadow-sm p-6 transform transition-all duration-500 ${
-                  isLoaded
+                className={`bg-white rounded-xl shadow-sm p-6 transform transition-all duration-500 ${isLoaded
                     ? 'opacity-100 translate-y-0'
                     : 'opacity-0 translate-y-4'
-                } ${stat.onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
+                  } ${stat.onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
                 <div className="flex items-center justify-between mb-4">
@@ -389,11 +387,10 @@ const ShopHome = () => {
               <button
                 key={action.title}
                 onClick={action.onClick || null}
-                className={`bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 text-left transform hover:-translate-y-1 ${
-                  isLoaded
+                className={`bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 text-left transform hover:-translate-y-1 ${isLoaded
                     ? 'opacity-100 translate-y-0'
                     : 'opacity-0 translate-y-4'
-                }`}
+                  }`}
                 style={{ transitionDelay: `${(index + 3) * 100}ms` }}
               >
                 <div className="flex items-center space-x-4">
@@ -404,7 +401,7 @@ const ShopHome = () => {
                     <h3 className="font-medium text-gray-900">
                       {action.title}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500" >
                       {action.description}
                     </p>
                   </div>
@@ -636,7 +633,13 @@ const ShopHome = () => {
                     <h3 className="text-lg font-semibold text-gray-900">
                       {product.productname}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500" style={{
+                      fontSize: '10px',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}>
                       {product.description}
                     </p>
                     <p className="text-md font-bold text-gray-700 mt-2">
@@ -659,7 +662,7 @@ const ShopHome = () => {
               </button>
             )}
           </div>
-          
+
         )}
 
         {showPendingOrders && (
@@ -987,24 +990,24 @@ const ShopHome = () => {
             )}
           </div>
         )}
-           
+
       </div>
-    <div className=" w-2xl ml-[30%] relative">
-  {showorderStatus && (
-    <div>
-       <button
+      <div className=" w-2xl ml-[30%] relative">
+        {showorderStatus && (
+          <div>
+            <button
               onClick={() => setShowOrderStatus(false)}
               className="absolute top-2 right-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-red-600"
             >
               Close
             </button>
-      
-      <OrdersChart 
-    pendingOrdersCount={pendingOrdersCount} 
-    completedOrdersCount={fullfilledOrdersCount} 
-  /></div>
-  )}
-</div>
+
+            <OrdersChart
+              pendingOrdersCount={pendingOrdersCount}
+              completedOrdersCount={fullfilledOrdersCount}
+            /></div>
+        )}
+      </div>
     </div>
 
   </>

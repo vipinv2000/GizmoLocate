@@ -11,7 +11,7 @@ const ViewCart = () => {
     const [refrescartpage, setRefreshCartPage] = useState(false)
     const [discountCode, setDiscountCode] = useState(false)
     const { cartedItem, total = 0, refreshContext, setRefreshContext } = useContext(Cartcontext);
-    const { cartCount, setCartcount, refresh, setRefresh, user } = useContext(AppContext)
+    const { cartCount, setCartcount, refresh, setRefresh, user,dark } = useContext(AppContext)
     const navigate = useNavigate();
     const [paymentMethod, setPaymentMethod] = useState("cod");
 
@@ -58,16 +58,16 @@ const ViewCart = () => {
     const totalItems = cartedItem?.shopProduct?.reduce((acc, shop) => acc + shop.products.length, 0) || 0;
 
     return (
-        <div className="w-full h-[98%]  flex items-center justify-center pb-12 ">
-            <div className="w-[95%] h-[800px] bg-white  rounded-xl  relative flex" style={{ boxShadow: "rgba(14, 63, 126, 0.04) 0px 0px 0px 1px, rgba(42, 51, 69, 0.04) 0px 1px 1px -0.5px, rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px, rgba(42, 51, 70, 0.04) 0px 6px 6px -3px, rgba(14, 63, 126, 0.04) 0px 12px 12px -6px, rgba(14, 63, 126, 0.04) 0px 24px 24px -12px" }} >
-                <div onClick={()=>navigate('/user/home')} className="absolute top-8 left-12 flex items-center gap-1  text-[#292f3f] rounded-lg w-fit cursor-pointer  transition">
+        <div className={`w-full h-[98%] ${dark ? "bg-[#141414]" : ""} flex items-center justify-center pb-12 `}>
+            <div className={`w-[95%] h-[800px] ${dark ? "bg-[#0F0F0F] shadow-[0px_4px_6px_rgba(155,155,155,0.2)]  text-white" : "bg-white shadow-2xl text-[#292f3f]"}  rounded-xl  relative flex`}  >
+                <div onClick={()=>navigate('/user/home')} className="absolute top-8 left-12 flex items-center gap-1   rounded-lg w-fit cursor-pointer  transition">
                     <ArrowLeft size={'17'} className="font-extrabold" />
                     <p className="text-[13px]  font-extrabold">Continue shopping</p>
                 </div>
                 <div className="w-[72%] h-full flex flex-col items-start  justify-end gap-4  pl-16">
                     <div className="w-full flex items-end gap-16">
-                        <p className="text-[40px] text-[#292f3f] font-extrabold">Shopping cart</p>
-                        <p className="text-[15px] text-[#292f3f] font-extrabold mb-2">{totalItems != 0 ? `${totalItems} Items ` : ""}</p>
+                        <p className="text-[40px]  font-extrabold">Shopping cart</p>
+                        <p className="text-[15px]  font-extrabold mb-2">{totalItems != 0 ? `${totalItems} Items ` : ""}</p>
                     </div>
                     <div className="w-full h-[80%]  overflow-y-scroll hide-scrollbar pb-10">
                         {cartedItem?.shopProduct?.length > 0 ? (
@@ -83,7 +83,7 @@ const ViewCart = () => {
                                                     </div>
                                                     <div className="flex h-[80%]  gap-1  w-[70%] justify-between">
                                                         <div className="flex flex-col justify-evenly w-[75%]">
-                                                            <h3 className="text-[20px] text-[#292f3f] font-extrabold">{product.productId.productname}</h3>
+                                                            <h3 className="text-[20px]  font-extrabold">{product.productId.productname}</h3>
                                                             <p className="text-sm text-gray-500">{product.productId.productType} {product.productId.category} ,{product.productId.modelnumber}</p>
                                                             <div className="flex items-center gap-2">
                                                                 <StepBack strokeWidth={1} size={19} color="gray" onClick={() => quantityChange(shop.shopId._id, product.productId._id, false)} />
@@ -97,7 +97,7 @@ const ViewCart = () => {
                                                         <div className="w-[25%] flex justify-evenly items-center ">
                                                             <p className="font-semibold">₹ {product.productId.price}</p>
                                                             <button
-                                                                className="h-7 bg-gray-900 opacity-15 text-white rounded-full p-1 hover:bg-red-600 hover:opacity-100"
+                                                                className={`h-7 ${dark ? "bg-gray-800 opacity-55" : "bg-gray-900 opacity-15"}  text-white rounded-full p-1 hover:bg-red-600 hover:opacity-100`}
                                                                 onClick={() => deletedCartedProduct(shop.shopId._id, product.productId._id)}
                                                             >
                                                                 <X size={18} />
@@ -118,16 +118,16 @@ const ViewCart = () => {
                 </div>
                 {
                     cartedItem?.shopProduct?.length > 0 &&
-                    <div className="flex flex-col justify-around w-[28%] h-ful bg-[#F6F6F6] rounded-xl p-6" >
+                    <div className={`flex flex-col justify-around w-[28%] h-ful ${dark ? "bg-[#16181d]" : "bg-gray-100"} rounded-xl p-6`} >
                         <div className="  flex items-center justify-between">
                             {
                                 user && (
                                     <>
                                         <div className="flex flex-col gap-1.5 w-[80%]">
-                                            <p className="text-[18px] text-[#292f3f] font-extrabold" style={{ letterSpacing: "5px", wordSpacing: "7px" }}>{user.fullName}</p>
-                                            <p className="text-[16px] text-[#292f3f] italic">{user.email}</p>
-                                            <p className="text-[16px] text-[#292f3f] italic">+91 {user.phoneNumber}</p>
-                                            <p className="text-[14px] text-[#292f3f] italic flex gap-3"> {user.locationName}</p>
+                                            <p className="text-[18px]  font-extrabold" style={{ letterSpacing: "5px", wordSpacing: "7px" }}>{user.fullName}</p>
+                                            <p className="text-[16px]  italic">{user.email}</p>
+                                            <p className="text-[16px]  italic">+91 {user.phoneNumber}</p>
+                                            <p className="text-[14px]  italic flex gap-3"> {user.locationName}</p>
                                         </div>
                                         <div className=" w-[20%] flex justify-end italic">
                                             <p className="text-blue-600 cursor-pointer"><u>Edit</u></p>
@@ -152,7 +152,7 @@ const ViewCart = () => {
                             </div>
                         </div>
 
-                        <div className="flex text-[#292f3f]" disabled>
+                        <div className="flex " disabled>
                             <div className="flex flex-col gap-3 w-full">
                                 <div>
                                     <p className="text-[18px]  font-extrabold">Do you have any discount code?</p>
@@ -160,7 +160,7 @@ const ViewCart = () => {
                                 </div>
                                 <div className="flex flex-col  items-center ">
                                     <div className="flex w-full gap-2">
-                                        <input className="border border-gray-400 px-2 py-1 w-full" type="text" placeholder="Your code here" />
+                                        <input className={`${dark ? "placeholder-gray-300" : "placeholder-black"} border border-gray-400 px-2 py-1 w-full`} type="text" placeholder="Your code here" />
                                         <button onClick={()=>setDiscountCode(true)} className="text-xs border border-gray-400 font-extrabold bg-[#292f3f] text-white px-3 py-2">APPLY</button>
                                     </div>
                                     {
@@ -180,16 +180,16 @@ const ViewCart = () => {
                             <div>
                                 <h2 className="text-xl font-bold mb-4">Order Summary</h2>
                                 <div className="flex justify-between mb-2">
-                                    <p className="text-gray-700">Total Items:</p>
+                                    <p className="">Total Items:</p>
                                     <p className="font-semibold">{totalItems}</p>
                                 </div>
                                 <div className="flex justify-between mb-4">
-                                    <p className="text-gray-700">Total Amount:</p>
+                                    <p className="">Total Amount:</p>
                                     <p className="font-bold text-lg">₹{total}</p>
                                 </div>
 
                                 <div className="mb-4">
-                                    <label className="block text-gray-700 font-semibold mb-2">Payment Method:</label>
+                                    <label className="block  font-semibold mb-2">Payment Method:</label>
                                     <select
                                         value={paymentMethod}
                                         onChange={(e) => setPaymentMethod(e.target.value)}

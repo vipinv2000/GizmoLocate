@@ -34,6 +34,14 @@ const shopSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  lat: {
+    type: String,
+    default: "37.7749",
+  },
+  lng: {
+    type: String,
+    default: "-122.4194",
+  }
 });
 
 const Shop = mongoose.model('Shop', shopSchema);

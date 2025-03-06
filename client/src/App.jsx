@@ -26,20 +26,18 @@ import Admin_root from './components/Admin/Admin_root.jsx';
 import ShopSignUp from './components/shops/signUp.jsx';
 
 const App = () => {
-  const { name, user, isAuth, isadmin,isShopAuth } = useContext(AppContext);
+  const { name, user, isAuth, isadmin, isShopAuth } = useContext(AppContext);
   console.log(isAuth);
   return (
     <>
       <Routes>
-        <Route path="/shop/home" element={<ShopHome />} />
-        <Route
-          path="/shop/signup"
-          element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopSignUp />}
-        />
-        <Route
-          path="/shop/login"
-          element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopLogin />}
-        />
+
+        <Route path='/shop'>
+          <Route index element={<ShopHome />} />
+          <Route path="/shop/home" element={<ShopHome />} />
+          <Route path="/shop/signup" element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopSignUp />} />
+          <Route path="/shop/login" element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopLogin />} />
+        </Route>
 
 
         <Route

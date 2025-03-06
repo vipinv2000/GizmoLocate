@@ -54,7 +54,7 @@ const UserHome = () => {
 
 
       {/* Product Grid */}
-      <div className="w-full flex flex-wrap justify-center gap-5 mt-6 mb-14">
+      <div className="w-full flex flex-wrap justify-between grow gap-5 mt-6 mb-14">
         {showProducts.length === 0 ? (
           <div>
             <h1>No Product found</h1>

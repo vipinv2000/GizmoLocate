@@ -29,7 +29,7 @@ const Product_card = ({ pro }) => {
     return (
 
 
-        <div className="w-[300px] flex flex-col grow relative  rounded-lg  overflow-hidden mt-4" onDoubleClick={() => {
+        <div className="w-[300px] flex flex-col  relative  rounded-lg  overflow-hidden mt-4" onDoubleClick={() => {
             toggleWishList(pro._id)
             playSound();
         }}>

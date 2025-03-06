@@ -7,13 +7,13 @@ export const userNotify = async (userId, message) => {
         if (!notifications) {
             notifications = new Notify({
                 userId,
-                messages: [{ notification: message, dateTime: new Date() }], // Push an object
+                messages: [{ notification: message, dateTime: new Date(), isorder: true }], // Push an object
                 isViewed: true
             });
 
             await notifications.save();
         } else {
-            notifications.messages.push({ notification: message, dateTime: new Date() });
+            notifications.messages.push({ notification: message, dateTime: new Date(), isorder: true });
             notifications.isViewed = true;
             await notifications.save();
         }

@@ -6,7 +6,7 @@ import { assets } from "../../assets/assets";
 import Button from "./Button";
 
 const UserHome = () => {
-  const { setEnnablesearchBar, setToggleMenu, refresh, setRefresh } = useContext(AppContext);
+  const { setEnnablesearchBar, setToggleMenu, refresh, setRefresh,dark } = useContext(AppContext);
   const { showProducts } = useContext(ProductContext);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const UserHome = () => {
   }, []);
 
   return (
-    <div className="w-full min-h-screen bg-white  pt-0 p-6 mb-6">
+    <div className={`w-full min-h-screen ${dark ? "bg-[#0F0F0F] " : "bg-white"}  pt-0 p-6 mb-6`}>
       <div className=" h-auto w-full max-w-full overflow-x-hidden  hide-scrollbar ">
         <Button />
       </div>
@@ -46,7 +46,7 @@ const UserHome = () => {
 
           {/* Right Section (Image) */}
           <div className="flex justify-center items-center h-auto">
-            <img className="h-[100px] sm:h-[150px]" src={assets.banner_Gif} alt="Banner" />
+            <img className="h-[100px] sm:h-[200px]" src={assets.banner_Gif} alt="Banner" />
           </div>
 
         </div>
@@ -54,7 +54,7 @@ const UserHome = () => {
 
 
       {/* Product Grid */}
-      <div className="w-full flex flex-wrap justify-center gap-5 mt-6 mb-14">
+      <div className="w-full flex flex-wrap justify-center gap-5 mt-1 mb-14">
         {showProducts.length === 0 ? (
           <div>
             <h1>No Product found</h1>

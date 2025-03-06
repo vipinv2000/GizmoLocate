@@ -19,6 +19,8 @@ export const AppContextProvider = ({ children }) => {
   const [notification, setNotifications] = useState({})
   const [isadmin, setIsAdmin] = useState(false)
   const [selectedtab, setSelectedTab] = useState(0)
+  const [dark,setDark] = useState(true)
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -132,7 +134,9 @@ export const AppContextProvider = ({ children }) => {
     isadmin,
     setIsAdmin,
     selectedtab,
-    setSelectedTab
+    setSelectedTab,
+    dark,
+    setDark
 
   };
 

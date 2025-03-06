@@ -5,10 +5,12 @@ import { ProductContext } from '../../context/ProductContext'
 import { useNavigate } from 'react-router-dom'
 import { motion } from "framer-motion";
 import { assets } from '../../assets/assets'
+import { AppContext } from '../../context/AppContext'
 
 const Product_card = ({ pro }) => {
 
     const { setwidhListToggle, wishlistToggle } = useContext(ProductContext)
+    const {dark} = useContext(AppContext)
 
     const navigate = useNavigate()
 
@@ -29,7 +31,7 @@ const Product_card = ({ pro }) => {
     return (
 
 
-        <div className="w-[300px] flex flex-col grow relative  rounded-lg  overflow-hidden mt-4" onDoubleClick={() => {
+        <div className="w-[300px] flex flex-col grow  relative  rounded-lg  overflow-hidden mt-4" onDoubleClick={() => {
             toggleWishList(pro._id)
             playSound();
         }}>
@@ -64,7 +66,7 @@ const Product_card = ({ pro }) => {
 
                 )
             }
-            <div className=' h-full flex flex-col' onClick={() => navigate(`/user/viewProduct/${pro._id}`)}>
+            <div className={`h-full flex flex-col ${dark ? "text-white" : "text-black"} `} onClick={() => navigate(`/user/viewProduct/${pro._id}`)}>
 
                 <img src={pro.productimage} alt={pro.productname} className="w-full h-40 object-cover" />
                 <div className="h-full    flex flex-col gap-1  ">
@@ -78,23 +80,23 @@ const Product_card = ({ pro }) => {
                                 <div className=''>
                                     <p className='text-xs tracking-widest mt-2' style={{ letterSpacing: "7px" }}>{pro.productType}</p>
                                     <p className="text-lg font-semibold text-[20px]">{pro.productname}</p>
-                                    <div className='bg-black h-[1px] w-[30%]'></div>
+                                    
                                 </div>
 
                             </div>
                         </div>
-                        <div>
+                        <div className=''>
                             <p className="text-lg font-semibold text-[13px] italic mt-2">{pro.modelnumber}</p>
-                            <p className="text-gray-600 text-sm italic" style={{
+                            <p className=" text-sm italic" style={{
                                 fontSize: '10px',
                                 display: '-webkit-box',
                                 WebkitLineClamp: 2,
                                 WebkitBoxOrient: 'vertical',
                                 overflow: 'hidden',
                             }}>{pro.description}</p>
-                            <p className="text-sm text-gray-500 font-extrabold mt-2" style={{ wordSpacing: "7px" }}>Price : {pro.price}<span className=' text-[12px]'>/-</span> </p>
+                            <p className={`text-sm ${dark ? "text-gray-300 " : "text-gray-900 "}  font-extrabold mt-2`} style={{ wordSpacing: "7px" }}>Price : {pro.price}<span className=' text-[12px]'>/-</span> </p>
                             <p
-                                className="text-gray-500"
+                                className="text-gray-600"
                                 style={{
                                     fontSize: '13px',
                                     display: '-webkit-box',

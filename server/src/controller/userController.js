@@ -57,12 +57,12 @@ export const signup = async (req, res) => {
       await newUser.save();
 
       res.status(201).json({
-        success:true,
-        user:{
+        success: true,
+        user: {
           _id: newUser._id,
-        fullName: newUser.fullName,
-        email: newUser.email,
-        profilePic: newUser.profilePic,
+          fullName: newUser.fullName,
+          email: newUser.email,
+          profilePic: newUser.profilePic,
         }
       });
     } else {
@@ -352,7 +352,9 @@ export const PlaceOrders = async (req, res) => {
 
     await order.save();
 
-    userNotify(userId, `Your order for ${productname} has been successfully placed! We appreciate your trust in us. Wishing you a wonderful day! ✨`)
+    userNotify(userId, `Your order for ${productname} has been successfully placed! We appreciate your trust in us. Wishing you a wonderful day! ✨`
+      , true
+    )
 
     await Cart.deleteOne({ user: userId });
 
@@ -824,5 +826,71 @@ export const recentOrder = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const verfyUpdateProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { email, password } = req.body;
+    const checkMail = await User.findOne({ email: email, _id: userId });
+    if (!checkMail) {
+      return res.status(400).json({ success: false, message: "Incorrect Mail Address or Account Miss match" });
+    }
+
+    const bcryptpassword = await bcrypt.compare(password, checkMail.password);
+    if (!bcryptpassword) {
+      return res.status(400).json({ success: false, message: "Incorrect Password" });
+    }
+
+    return res.status(200).json({ success: true });
+
+  } catch (error) {
+    return res.status(500).json({ success: false, error });
+  }
+}
+
+export const UpdateProfile = async (req, res) => {
+  const userId = req.user._id;
+  const { fullName, email, phoneNumber, password } = req.body;
+
+  try {
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const existmail = await User.find({ email: email });
+
+    if (user.email == email) {
+
+    } else {
+      if (existmail) {
+        return res.status(404).json({ success: false, message: "This Mail addres Already exis" });
+      }
+    }
+
+
+    // Create update object
+    const updateFields = { fullName, email, phoneNumber };
+
+    // If password is provided, hash it before updating
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateFields.password = await bcrypt.hash(password, salt);
+    }
+
+    // Update user in the database
+    const upedProfile = await User.updateOne({ _id: userId }, { $set: updateFields });
+
+
+
+    return res.status(200).json({ success: true, message: "Profile updated successfully", user });
+
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 
 

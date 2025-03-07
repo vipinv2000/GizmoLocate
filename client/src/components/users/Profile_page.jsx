@@ -4,11 +4,13 @@ import { MapPin, Mail, Phone, Edit, ChevronsDown } from 'lucide-react';
 import { Axios } from '../../utils/Axiox.js';
 import toast from 'react-hot-toast';
 import { motion } from "framer-motion";
+import { useNavigate } from 'react-router-dom';
 
 const Profile_page = () => {
     const [recentOrders, setRecentOrders] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
     const { user, dark } = useContext(AppContext);
+    const navigate = useNavigate()
 
     useEffect(() => {
         if (user) {
@@ -45,8 +47,8 @@ const Profile_page = () => {
                         <h1 className="text-2xl font-bold">{currentUser?.fullName}</h1>
                         <p >Member since {new Date(currentUser?.createdAt).toLocaleDateString()}</p>
                     </div>
-                    <button className={`px-4 py-2 ${dark ? "bg-white  text-black hover:bg-gray-300" : "bg-gray-800 hover:bg-gray-700 text-white"}  rounded-lg  flex items-center`}>
-                        <Edit className="h-4 w-4 mr-2" /> Edit Profile
+                    <button onClick={()=>navigate('/user/settings')} className={`px-4 py-2 ${dark ? "bg-white  text-black hover:bg-gray-300" : "bg-gray-800 hover:bg-gray-700 text-white"}  rounded-lg  flex items-center`}>
+                        <Edit  className="h-4 w-4 mr-2" /> Edit Profile
                     </button>
                 </div>
             </div>

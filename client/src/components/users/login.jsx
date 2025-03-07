@@ -25,7 +25,7 @@ const UserLogin = () => {
 
     if (!formData.password) return toast.error('Password is required');
     if (formData.password.length < 5)
-      return toast.error('Password must be at least 6 characters');
+      return toast.error('Password must be at least 5 characters');
 
     try {
       setLoading(true);

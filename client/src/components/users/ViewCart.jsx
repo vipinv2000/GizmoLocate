@@ -5,6 +5,7 @@ import { Axios } from "../../utils/Axiox";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../context/AppContext";
+import { ProductContext } from "../../context/ProductContext";
 
 const ViewCart = () => {
 
@@ -12,6 +13,7 @@ const ViewCart = () => {
     const [discountCode, setDiscountCode] = useState(false)
     const { cartedItem, total = 0, refreshContext, setRefreshContext } = useContext(Cartcontext);
     const { cartCount, setCartcount, refresh, setRefresh, user,dark } = useContext(AppContext)
+     const {restart,setRestart} = useContext(ProductContext)
     const navigate = useNavigate();
     const [paymentMethod, setPaymentMethod] = useState("cod");
 
@@ -39,6 +41,7 @@ const ViewCart = () => {
             toast.error("Failed to remove product. Please try again.");
         } finally {
             setRefreshContext(!refreshContext);
+            setRestart(!restart)
         }
     };
 

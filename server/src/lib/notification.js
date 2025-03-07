@@ -1,13 +1,13 @@
 import Notify from "../models/notify_model.js";
 
-export const userNotify = async (userId, message) => {
+export const userNotify = async (userId, message,status) => {
     try {
         let notifications = await Notify.findOne({ userId });
 
         if (!notifications) {
             notifications = new Notify({
                 userId,
-                messages: [{ notification: message, dateTime: new Date(), isorder: true }], // Push an object
+                messages: [{ notification: message, dateTime: new Date(), isorder: status }], // Push an object
                 isViewed: true
             });
 

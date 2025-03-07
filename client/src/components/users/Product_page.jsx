@@ -6,11 +6,13 @@ import { AppContext } from "../../context/AppContext";
 import { ShoppingBag } from "lucide-react";
 import { IoCart } from "react-icons/io5";
 import { MdOutlineHourglassEmpty } from "react-icons/md";
+import { ProductContext } from "../../context/ProductContext";
 
 const Product_page = () => {
   const { proId } = useParams();
   const [singleProduct, setSingleProduct] = useState(null);
   const { cartCount, setCartcount, dark } = useContext(AppContext);
+  const {restart,setRestart} = useContext(ProductContext)
 
   const fetchSingleProduct = async () => {
     try {
@@ -29,12 +31,13 @@ const Product_page = () => {
     try {
       const { data } = await Axios.get(`/user/addCart/${productId}/${shopId}/${pName}`);
       toast.success(data.message);
-
+      setRestart(!restart)
       setSingleProduct((prev) => ({
         ...prev,
         quantity: prev.quantity - 1,
       }));
       setCartcount(cartCount + 1);
+     
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Something went wrong!";
       toast.error(errorMessage);

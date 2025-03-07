@@ -21,8 +21,8 @@ const Navbar = () => {
           <div className="h-16 flex flex-col sm:justify-end justify-center">
             <h2 className=" sm:text-2xl text-sm font-bold  cursor-pointer" onClick={()=>navigate('/user/home')}>GizmoLocate</h2>
             <div className="flex items-center gap-1 cursor-pointer" onClick={() => navigate('/user/settings')}>
-              <p style={{letterSpacing:"1px"}} className="sm:text-[12px] text-[8px] text-red-700">{user?.locationName}</p>
-              <ArrowBigRight className="w-3 h-3 text-red-700" />
+              <p style={{letterSpacing:"1px"}} className={`sm:text-[12px] text-[8px] ${dark ? "text-[#0053d2]" : "text-red-700"} `}>{user?.locationName}</p>
+              <ArrowBigRight className={`w-3 h-3 ${dark ? "text-[#0053d2]" : "text-red-700"}`} />
             </div>
           </div>
         </div>

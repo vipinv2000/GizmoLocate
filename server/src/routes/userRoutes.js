@@ -27,7 +27,9 @@ import {
   getCartCount,
   getUserNotifications,
   togglenotification,
-  recentOrder
+  recentOrder,
+  verfyUpdateProfile,
+  UpdateProfile
 } from '../controller/userController.js';
 
 const router = express.Router();
@@ -78,5 +80,8 @@ router.get('/getUserNotifications', UserPrivateRoute, getUserNotifications)
 router.get('/togglenotification', UserPrivateRoute, togglenotification)
 
 router.get('/recentOrder',UserPrivateRoute,recentOrder)
+
+router.post('/verfyUpdateProfile',UserPrivateRoute,verfyUpdateProfile)
+router.post('/UpdateProfile',UserPrivateRoute,UpdateProfile)
 
 export default router;

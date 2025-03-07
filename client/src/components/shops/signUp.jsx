@@ -17,7 +17,7 @@ import { Axios } from '../../utils/Axiox';
 
 const ShopSignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
-  
+
 
 
   const [formData, setFormData] = useState({
@@ -27,6 +27,8 @@ const ShopSignUp = () => {
     phonenumber: '',
     locationName: '',
     description: '',
+    lat: '',
+    lng: '',
     shopimage: null,
   });
 
@@ -70,10 +72,10 @@ const ShopSignUp = () => {
 
     try {
       const { data } = await Axios.post('/shop/signUp', finalData);
-        if (data.success) {
-            setIsShopAuth(true)
-          setShop(data.shop)
-        }
+      if (data.success) {
+        setIsShopAuth(true)
+        setShop(data.shop)
+      }
 
       navigate('/shop/home');
       toast.success('Account created successfully!');
@@ -86,8 +88,24 @@ const ShopSignUp = () => {
     }
   };
 
+  const getLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          toast.success(`Location : ${position.coords.latitude} X ${position.coords.longitude}`)
+          setFormData({...formData,lat:position.coords.latitude,lng:position.coords.longitude})
+        },
+        (error) => {
+          console.error("Error getting location: ", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  };
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 py-12">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">
           Create an Account
@@ -137,19 +155,24 @@ const ShopSignUp = () => {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-gray-700 font-medium">Location</label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 size-5" />
-              <input
-                type="text"
-                className="w-full h-12 border border-gray-300 rounded-lg pl-10 pr-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
-                placeholder="Shop location..."
-                value={formData.locationName}
-                onChange={e =>
-                  setFormData({ ...formData, locationName: e.target.value })
-                }
-              />
+          <div className='w-full flex  justify-center gap-2.5'>
+            <div className='w-[70%]'>
+              <label className="block text-gray-700 font-medium">Place</label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 size-5" />
+                <input
+                  type="text"
+                  className="w-full h-12 border border-gray-300 rounded-lg pl-10 pr-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
+                  placeholder="Shop location..."
+                  value={formData.locationName}
+                  onChange={e =>
+                    setFormData({ ...formData, locationName: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className='w-[30%]  flex justify-end flex-col'>
+              <p onClick={getLocation} className='text-center bg-gray-200 px-2 py-3 rounded-lg cursor-pointer'>Location</p>
             </div>
           </div>
 

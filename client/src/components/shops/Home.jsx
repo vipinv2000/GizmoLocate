@@ -11,6 +11,7 @@ import {
   Box,
   Type,
   ImagesIcon,
+  LayoutDashboard,
   TrendingUp,
   Users,
   Calendar,
@@ -29,11 +30,17 @@ import {
   Hourglass,
   HourglassIcon,
   Boxes,
+  Edit2,
+  Save,
+  X,
+  IndianRupeeIcon,
 } from 'lucide-react';
 import { Axios } from '../../utils/Axiox';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import OrdersChart from '../Chart';
+import { FaMoneyBillWave } from 'react-icons/fa';
+import LogoutButton from '../logout';
 
 const ShopHome = () => {
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -62,6 +69,11 @@ const ShopHome = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [shopUsers, setShopUsers] = useState([]);
   const [showUsers, setShowUsers] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editForm, setEditForm] = useState({
+    price: '',
+    quantity: '',
+  });
   const productRef = useRef(null);
   const ordersRef = useRef(null);
   const usersRef = useRef(null);
@@ -107,7 +119,7 @@ const ShopHome = () => {
       const { data } = await Axios.get('/shop/users');
       setShopUsers(data.users || []);
       setShowUsers(true);
-      setShowOrderStatus(false)
+      setShowOrderStatus(false);
       setShowFullfilledOrders(false);
       setShowProducts(false);
       setShowPendingOrders(false);
@@ -129,7 +141,7 @@ const ShopHome = () => {
       setFullfilledOrders(data.deliveredOrders || []);
       setFullfilledOrdersCount(data.totaldeliveredOrders || 0);
       setShowFullfilledOrders(true);
-      setShowOrderStatus(false)
+      setShowOrderStatus(false);
       setShowPendingOrders(false);
       setShowProducts(false);
       setShowUsers(false);
@@ -151,14 +163,74 @@ const ShopHome = () => {
     if (!file) return;
 
     const reader = new FileReader();
-
     reader.readAsDataURL(file);
-
     reader.onload = async () => {
       const base64Image = reader.result;
       setImagePreview(base64Image);
       setProductImage(base64Image);
     };
+  };
+
+  const handleEdit = (product) => {
+    setEditingProduct(product._id);
+    setEditForm({
+      price: product.price.toString(),
+      quantity: product.quantity.toString(),
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProduct(null);
+    setEditForm({ price: '', quantity: '' });
+  };
+
+  const handleUpdateProduct = async (productId) => {
+    try {                                     
+      const { data } = await Axios.patch(`/shop/update-product/${productId}`, {
+        price: Number(editForm.price),
+        quantity: Number(editForm.quantity),
+      });
+
+      if (data.success) {
+        const updatedProducts = productList.map((product) =>
+          product._id === productId
+            ? {
+                ...product,
+                price: Number(editForm.price),
+                quantity: Number(editForm.quantity),
+              }
+            : product
+        );
+        setProductList(updatedProducts);
+        setEditingProduct(null);
+        toast.success('Product updated successfully');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update product');
+    }
+  };
+
+  const markAsReady = async orderId => {
+    if (!orderId) {
+      toast.error('Missing orderId');
+      return;
+    }
+
+    try {
+      const response = await Axios.patch(`/shop/completeOrderReady/${orderId}`);
+
+      if (response.data) {
+       
+        const { data } = await Axios.get('/shop/pendingOrders');
+        setPendingOrders(data.undeliveredOrders || []);
+        setPendingOrdersCount(data.totalUndeliveredOrders || 0);
+
+        toast.success('Order marked as ready for pickup');
+      }
+    } catch (error) {
+      console.error('Error marking order as ready:', error);
+      toast.error(error.response?.data?.message || 'Failed to mark order as ready');
+    }
   };
 
   const handleSubmit = async e => {
@@ -169,7 +241,6 @@ const ShopHome = () => {
       quantity: Number(formData.quantity),
       price: Number(formData.price),
     };
-    console.log('Final Data Before Submit:', finalData);
     try {
       const { data } = await Axios.post('/shop/add-product', finalData);
       if (data.success) {
@@ -198,16 +269,43 @@ const ShopHome = () => {
     }
   };
 
+  const markAsDelivered = async orderId => {
+    if (!orderId) {
+      toast.error('Missing orderId');
+      return;
+    }
+
+    try {
+      const response = await Axios.patch(`/shop/completeOrder/${orderId}`);
+
+      if (response.data) {
+        const { data } = await Axios.get('/shop/pendingOrders');
+        setPendingOrders(data.undeliveredOrders || []);
+        setPendingOrdersCount(data.totalUndeliveredOrders || 0);
+
+        const revenueResponse = await Axios.get('/shop/revenue');
+        setTotalRevenue(revenueResponse.data.totalRevenue || 0);
+
+        toast.success('Order marked as delivered successfully');
+      }
+    } catch (error) {
+      console.error('Error marking order as delivered:', error);
+      toast.error(
+        error.response?.data?.message || 'Failed to mark order as delivered'
+      );
+    }
+  };
+
   const stats = [
     {
       title: 'Total Products',
       value: productList.length,
-      icon:  () => <Boxes size={28} className="text-white" />, 
-      trend: 'Click to CheckOut the products..',
+      icon: () => <Boxes size={28} className="text-white" />,
+      trend: 'Click to CheckOut the products...',
       color: 'bg-blue-500',
       onClick: () => {
         setShowProducts(true);
-        setShowOrderStatus(false)
+        setShowOrderStatus(false);
         setShowFullfilledOrders(false);
         setShowPendingOrders(false);
         setShowUsers(false);
@@ -222,19 +320,19 @@ const ShopHome = () => {
     {
       title: 'Total Revenue',
       value: `Rs ${totalRevenue}`,
-      icon: IndianRupee,
+      icon: ()=><FaMoneyBillWave size={34} />,
       trend: 'From delivered orders',
-      color: 'bg-green-500',
+      color: '',
     },
     {
       title: 'Pending Orders',
       value: pendingOrdersCount,
-      icon: () => <HourglassIcon size={24} className="text-white" />, 
+      icon: () => <HourglassIcon size={24} className="text-white" />,
       trend: 'Click to view pending orders',
       color: 'bg-red-500',
       onClick: () => {
         setShowPendingOrders(true);
-        setShowOrderStatus(false)
+        setShowOrderStatus(false);
         setShowFullfilledOrders(false);
         setShowProducts(false);
         setShowUsers(false);
@@ -265,20 +363,19 @@ const ShopHome = () => {
       icon: TrendingUp,
       title: 'Order Status',
       description: 'Check how far to go...',
-      onClick:async()=>{
-       try {
-        const { data } = await Axios.get('/shop/fullfilledOrders');
-        setFullfilledOrdersCount(data.totaldeliveredOrders || 0);
-        setShowOrderStatus(true)
-        setShowFullfilledOrders(false);
-      setShowPendingOrders(false);
-      setShowProducts(false);
-      setShowUsers(false);
-        
-       } catch (e) {
-        toast.error("Retry")
-       }
-      }
+      onClick: async () => {
+        try {
+          const { data } = await Axios.get('/shop/fullfilledOrders');
+          setFullfilledOrdersCount(data.totaldeliveredOrders || 0);
+          setShowOrderStatus(true);
+          setShowFullfilledOrders(false);
+          setShowPendingOrders(false);
+          setShowProducts(false);
+          setShowUsers(false);
+        } catch (e) {
+          toast.error('Retry');
+        }
+      },
     },
   ];
 
@@ -291,36 +388,10 @@ const ShopHome = () => {
     });
   };
 
-  const markAsDelivered = async orderId => {
-    if (!orderId) {
-      toast.error('Missing orderId ');
-      return;
-    }
-
-    try {
-      const response = await Axios.patch(`/shop/completeOrder/${orderId}`);
-
-      if (response.data) {
-        const { data } = await Axios.get('/shop/pendingOrders');
-        setPendingOrders(data.undeliveredOrders || []);
-        setPendingOrdersCount(data.totalUndeliveredOrders || 0);
-
-        const revenueResponse = await Axios.get('/shop/revenue');
-        setTotalRevenue(revenueResponse.data.totalRevenue || 0);
-
-        toast.success('Order marked as delivered successfully');
-      }
-    } catch (error) {
-      console.error('Error marking order as delivered:', error);
-      toast.error(
-        error.response?.data?.message || 'Failed to mark order as delivered'
-      );
-    }
-  };
-
-  return <>
-  <div className="min-h-screen bg-gray-50">
+  return (
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className='absolute left-4'onClick={()=>{}} ><LogoutButton/></div>
         <div
           className={`flex justify-between items-center mb-8 transition-all duration-500 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
@@ -345,6 +416,8 @@ const ShopHome = () => {
             <Plus className="h-5 w-5 mr-2" />
             Add Product
           </button>
+          
+        
         </div>
 
         {/* Stats */}
@@ -383,6 +456,7 @@ const ShopHome = () => {
           </div>
         )}
 
+        {/* Quick Actions */}
         {!isAddingProduct && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {quickActions.map((action, index) => (
@@ -401,20 +475,16 @@ const ShopHome = () => {
                     <action.icon className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      {action.title}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {action.description}
-                    </p>
+                    <h3 className="font-medium text-gray-900">{action.title}</h3>
+                    <p className="text-sm text-gray-500">{action.description}</p>
                   </div>
                 </div>
               </button>
             ))}
-
           </div>
         )}
 
+        {/* Add Product Form */}
         {isAddingProduct && (
           <div className="bg-white rounded-xl shadow-lg p-6 animate-fadeIn">
             <div className="flex justify-between items-center mb-6">
@@ -607,6 +677,7 @@ const ShopHome = () => {
           </div>
         )}
 
+        {/* Product List */}
         {showProducts && (
           <div
             ref={productRef}
@@ -626,7 +697,7 @@ const ShopHome = () => {
                 productList.map(product => (
                   <div
                     key={product._id}
-                    className="bg-gray-100 p-4 rounded-lg shadow-sm"
+                    className="bg-gray-100 p-4 rounded-lg shadow-sm relative group"
                   >
                     <img
                       src={product.productimage}
@@ -636,12 +707,84 @@ const ShopHome = () => {
                     <h3 className="text-lg font-semibold text-gray-900">
                       {product.productname}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p
+                      className="text-sm text-gray-500"
+                      style={{
+                        fontSize: '10px',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
                       {product.description}
                     </p>
-                    <p className="text-md font-bold text-gray-700 mt-2">
-                      ${product.price}
-                    </p>
+
+                    {editingProduct === product._id ? (
+                      <div className="mt-2 space-y-2">
+                        <div className='flex gap-1' > 
+                        <div className="flex items-center space-x-2">
+                          <label className="text-sm text-gray-600">Price:</label>
+                          <input
+                            type="number"
+                            value={editForm.price}
+                            onChange={e =>
+                              setEditForm({ ...editForm, price: e.target.value })
+                            }
+                            className="w-24 px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <label className="text-sm text-gray-600">
+                            Quantity:
+                          </label>
+                          <input
+                            type="number"
+                            value={editForm.quantity}
+                            onChange={e =>
+                              setEditForm({
+                                ...editForm,
+                                quantity: e.target.value,
+                              })
+                            }
+                            className="w-24 px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          />
+                        </div>
+                        </div>
+                        <div className="flex space-x-2 mt-2">
+                          <button
+                            onClick={() => handleUpdateProduct(product._id)}
+                            className="flex items-center px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                          >
+                            <Save className="h-4 w-4 mr-1" />
+                            Save
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="flex items-center px-3 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm"
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-2">
+                        <p className="text-md font-bold text-gray-700 flex items-center justify-between">
+                          <span>₹{product.price}</span>
+                          <span className="text-sm text-gray-500">
+                            Qty: {product.quantity}
+                          </span>
+                        </p>
+                        <button
+                          onClick={() => handleEdit(product)}
+                          className="mt-2 flex items-center px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Edit2 className="h-4 w-4 mr-1" />
+                          Edit
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))
               ) : (
@@ -659,9 +802,9 @@ const ShopHome = () => {
               </button>
             )}
           </div>
-          
         )}
 
+        {/* Pending Orders */}
         {showPendingOrders && (
           <div
             ref={ordersRef}
@@ -687,8 +830,8 @@ const ShopHome = () => {
                     <div className="flex flex-wrap justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-semibold flex items-center">
-                          <ShoppingBag className="h-5 w-5 mr-2 text-purple-500" />
-                          Order #{order.orderId.substring(order.orderId)}
+                          <ShoppingBag className="h-5 w-5 mr-2 text-purple-500" /> 
+                          Order #{order.orderId.substring(order.orderId.length - 6)}
                         </h3>
                         <p className="text-sm text-gray-500 mt-1">
                           <span className="flex items-center">
@@ -698,15 +841,15 @@ const ShopHome = () => {
                         </p>
                       </div>
                       <div className="mt-2 sm:mt-0">
-                        {order.isDelivered ? (
+                        {order.orderReady ? (
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             <Check className="h-3 w-3 mr-1" />
-                            Delivered
+                            Ready for Pickup
                           </span>
                         ) : (
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <Truck className="h-3 w-3 mr-1" />
-                            Pending Delivery
+                            <Clock className="h-3 w-3 mr-1" />
+                            Processing
                           </span>
                         )}
                       </div>
@@ -746,17 +889,27 @@ const ShopHome = () => {
                         <div className="mt-4 flex justify-between items-center">
                           <span className="text-sm text-gray-500 flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
-                            Order Date:{' '}
-                            {order.products?.[0]?.date
-                              ? formatDate(order.products[0].date)
-                              : 'N/A'}
+                            Order Date: {order.products?.[0]?.date ? formatDate(order.products[0].date) : 'N/A'}
                           </span>
-                          <button
-                            onClick={() => markAsDelivered(order.orderId)}
-                            className="px-4 py-2 rounded-lg text-sm  bg-green-600 text-white hover:bg-green-700"
-                          >
-                            Mark as Delivered
-                          </button>
+                          <div className="flex gap-2">
+                            {!order.orderReady ? (
+                              <button
+                                onClick={() => markAsReady(order.orderId)}
+                                className="px-4 py-2 rounded-lg text-sm bg-blue-600 text-white hover:bg-blue-700 flex items-center"
+                              >
+                                <HourglassIcon className="h-4 w-4 mr-1" />
+                                Mark as Ready
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => markAsDelivered(order.orderId)}
+                                className="px-4 py-2 rounded-lg text-sm bg-green-600 text-white hover:bg-green-700 flex items-center"
+                              >
+                                <Check className="h-4 w-4 mr-1" />
+                                Mark as Delivered
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -788,6 +941,7 @@ const ShopHome = () => {
           </div>
         )}
 
+        
         {showfullfilledOrders && (
           <div
             ref={fullfillRef}
@@ -814,7 +968,7 @@ const ShopHome = () => {
                       <div>
                         <h3 className="text-lg font-semibold flex items-center">
                           <ShoppingBag className="h-5 w-5 mr-2 text-purple-500" />
-                          Order #{order.orderId.substring(order.orderId)}
+                          Order #{order.orderId.substring(order.orderId.length - 6)}
                         </h3>
                         <p className="text-sm text-gray-500 mt-1">
                           <span className="flex items-center">
@@ -865,10 +1019,7 @@ const ShopHome = () => {
                         <div className="mt-4 flex justify-between items-center">
                           <span className="text-sm text-gray-500 flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
-                            Order Date:{' '}
-                            {order.products?.[0]?.date
-                              ? formatDate(order.products[0].date)
-                              : 'N/A'}
+                            Order Date: {order.products?.[0]?.date ? formatDate(order.products[0].date) : 'N/A'}
                           </span>
                         </div>
                       </div>
@@ -901,6 +1052,7 @@ const ShopHome = () => {
           </div>
         )}
 
+        {/* Shop Users */}
         {showUsers && (
           <div
             ref={usersRef}
@@ -963,7 +1115,7 @@ const ShopHome = () => {
                           Orders: {user.orderCount || 0}
                         </span>
                         <span className="text-sm font-medium text-blue-600">
-                          ${user.totalSpent || 0}
+                          Rs {user.totalSpent || 0}
                         </span>
                       </div>
                     </div>
@@ -987,27 +1139,26 @@ const ShopHome = () => {
             )}
           </div>
         )}
-           
       </div>
-    <div className=" w-2xl ml-[30%] relative">
-  {showorderStatus && (
-    <div>
-       <button
+      <div className="w-2xl ml-[30%] relative">
+        {showorderStatus && (
+          <div>
+            <button
               onClick={() => setShowOrderStatus(false)}
               className="absolute top-2 right-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-red-600"
             >
               Close
             </button>
-      
-      <OrdersChart 
-    pendingOrdersCount={pendingOrdersCount} 
-    completedOrdersCount={fullfilledOrdersCount} 
-  /></div>
-  )}
-</div>
-    </div>
 
-  </>
+            <OrdersChart
+              pendingOrdersCount={pendingOrdersCount}
+              completedOrdersCount={fullfilledOrdersCount}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default ShopHome;

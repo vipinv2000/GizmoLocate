@@ -19,7 +19,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(RequestInfo);
-app.use(adminSignUp)
+
+
 //Routes
 
 app.use('/api/user', userRoute);

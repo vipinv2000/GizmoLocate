@@ -10,7 +10,7 @@ import { MdOutlineHourglassEmpty } from "react-icons/md";
 const Product_page = () => {
   const { proId } = useParams();
   const [singleProduct, setSingleProduct] = useState(null);
-  const { cartCount, setCartcount } = useContext(AppContext);
+  const { cartCount, setCartcount, dark } = useContext(AppContext);
 
   const fetchSingleProduct = async () => {
     try {
@@ -41,6 +41,24 @@ const Product_page = () => {
     }
   };
 
+  const handleNavigate = (userLat, userLng) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = `${position.coords.latitude},${position.coords.longitude}`;
+          const destination = `${userLat},${userLng}`;
+          const mapUrl = `https://www.google.com/maps/dir/${userLocation}/${destination}`;
+          window.open(mapUrl, "_blank");
+        },
+        (error) => {
+          alert("Unable to retrieve your location. Please enable location services.");
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
+  };
+
   if (!singleProduct) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
@@ -50,29 +68,29 @@ const Product_page = () => {
   }
   //[#292f3f]
   return (
-    <div className="w-full h-[98%]  flex items-center justify-center pb-8">
-      <div className="w-[80%] h-[700px] bg-white p-16 rounded-xl shadow-xs" >
-        <div className="w-full h-full bg- rounded-xl flex" style={{ boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px" }}>
-          <div className="flex items-center justify-center w-[40%] h-full bg-gray-200 rounded-xl shadow-2xl" style={{ borderTopRightRadius: "50%", borderBottomRightRadius: "50%" }}
+    <div className={`w-full h-[98%]  flex items-center justify-center pb-8 ${dark ? "bg-[#141414]" : "bg-white"} `}>
+      <div className={`w-[80%] h-[700px]  p-16 rounded-xl ${dark ? "bg-[#0F0F0F] shadow-[0px_4px_6px_rgba(35,35,35,0.5)]" : "shadow-lg"} `} >
+        <div className={`w-full h-full  rounded-xl flex ${dark ? "shadow-[0px_4px_6px_rgba(150,150,150,0.5)] text-white" : "shadow-2xl text-black border border-gray-100"}`}>
+          <div className={`flex items-center justify-center w-[40%] h-full ${dark ? "bg-[#171717] shadow-[0px_4px_6px_rgba(50,50,50,0.5)]" : "bg-gray-200"}  rounded-xl shadow-2xl `} style={{ borderTopRightRadius: "50%", borderBottomRightRadius: "50%" }}
           >
             <img
               src={singleProduct.productimage}
               alt={singleProduct.productname}
-              className="w-[80%] h-full object-contain "
-              style={{ borderRadius: "900px" }}
+              className="w-[80%] h-[60%] object-contain  "
+
             />
           </div>
           <div className="w-[60%] h-ful p-5 flex flex-col justify-around">
             <div className="w-full text-center">
-              <p className="text-gray-500 text-[38px] font-extrabold">Product Details</p>
+              <p className=" text-[45px] font-extrabold" style={{ letterSpacing: "8px" }}>Product Details</p>
 
             </div>
             <div className="w-full  pl-5 flex flex-col gap-3.5">
-              <p className="text-[15px] text-black italic">Model : {singleProduct.modelnumber}</p>
-              <p className="text-[40px] text-black font-extrabold">{singleProduct.productname}</p>
+              <p className="text-[15px] italic">Model : {singleProduct.modelnumber}</p>
+              <p className="text-[40px] t font-extrabold">{singleProduct.productname}</p>
               <div className="w-full flex gap-20">
-                <p className="text-[25px] text-black font-extrabold">₹{singleProduct.price}</p>
-                <p className="text-[25px] text-black font-semibold">{singleProduct.quantity > 0 ? `In Stock : ${singleProduct.quantity}` : "Sold Out"}</p>
+                <p className="text-[25px] font-extrabold">₹{singleProduct.price}</p>
+                <p className="text-[25px]  font-semibold">{singleProduct.quantity > 0 ? `In Stock : ${singleProduct.quantity}` : "Sold Out"}</p>
               </div>
             </div>
             <div className="w-full  flex flex-col gap-3.5 pl-5">
@@ -86,18 +104,20 @@ const Product_page = () => {
               <div className="w-full flex gap-8">
                 <p className="italic text-gray-500 text-sm font-extrabold">COLOR</p>
                 <div className="flex gap-11">
-                  <div className="w-[10px] p-3 bg-black rounded-full"> </div>
-                  <div className="w-[10px] p-3 bg-gray-200 rounded-full"> </div>
-                  <div className="w-[10px] p-3 bg-sky-300 rounded-full"> </div>
+                  <div className="w-[10px] p-3 bg-black rounded-full shadow-[0px_4px_6px_rgba(35,35,35,0.5)]"> </div>
+                  <div className="w-[10px] p-3 bg-gray-200 rounded-full shadow-[0px_4px_6px_rgba(35,35,35,0.5)]"> </div>
+                  <div className="w-[10px] p-3 bg-sky-300 rounded-full shadow-[0px_4px_6px_rgba(35,35,35,0.5)]"> </div>
                 </div>
               </div>
             </div>
             <div className="w-full flex items-center justify-evenly">
-              <p className="text-lg font-semibold text-black flex gap-3"><ShoppingBag /> {singleProduct.shop.shopname}</p>
+              <p className="text-lg font-semibold  flex gap-3 hover:text-gray-500"
+                onClick={() => handleNavigate(singleProduct?.shop?.lat, singleProduct?.shop?.lng)}
+              ><ShoppingBag /> {singleProduct.shop.shopname}</p>
               <p
                 onClick={() => handleAddToCart(singleProduct._id, singleProduct.shop._id, singleProduct.productname)}
-                className={`text-lg  px-6 py-2 text-black font-semibold  transition 
-              ${singleProduct.quantity > 0 ? "text-black hover:text-gray-500" : "text-gray-400 cursor-not-allowed"}`}
+                className={`text-lg  px-6 py-2  font-semibold  transition 
+              ${singleProduct.quantity > 0 ? "hover:text-gray-500" : "text-gray-400 cursor-not-allowed"}`}
                 disabled={singleProduct.quantity === 0}
               >
                 {singleProduct.quantity > 0 ? (

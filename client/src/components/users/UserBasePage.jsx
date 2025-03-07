@@ -6,20 +6,20 @@ import User_Sidebar from './sidebar.jsx';
 import { Outlet } from 'react-router-dom';
 
 const UserBasePage = () => {
-  const { toggleMenu } = useContext(AppContext);
+  const { toggleMenu, dark, setDark } = useContext(AppContext);
 
   return (
     <div className="max-h-screen flex fixed w-full">
       <main className="flex-1">
         <Navbar />
-        <div className="flex pt-20 max-h-screen">
+        <div className="flex pt-18 max-h-screen">
           {/* Sidebar */}
-          <div className={`transition-all duration-300 ${toggleMenu ? 'w-48 md:w-[200px]' : 'w-16 md:w-16'}`}>
+          <div className={`transition-all duration-300 ${toggleMenu ? 'w-48 md:w-[200px]' : 'w-16 md:w-18'} `}>
             <User_Sidebar />
           </div>
 
           {/* Main Content */}
-          <div className={` ${toggleMenu ? 'w-[88%] md:w-[96%]' : 'w-[96%] md:w-[98%]'} h-screen overflow-y-scroll bg-gray-100 hide-scrollbar`}>
+          <div className={` ${toggleMenu ? 'w-[88%] md:w-[96%]' : 'w-[96%] md:w-[98%]'} h-screen overflow-y-scroll  bg-gray-100 hide-scrollbar`}>
             <Outlet />
           </div>
         </div>

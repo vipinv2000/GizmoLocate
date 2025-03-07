@@ -9,7 +9,8 @@ import { MdLocationOn } from 'react-icons/md'; // Filled location icon
 const SettingsPage = () => {
   const [locationtext, setLocationtext] = useState('');
   const [locationArray, setLocationArray] = useState([]);
-  const { isAuth, user, refresh, setRefresh } = useContext(AppContext);
+  const [trysearch, setTrySearch] = useState(false)
+  const { isAuth, user, refresh, setRefresh,dark } = useContext(AppContext);
   const { wishlistToggle, setwidhListToggle } = useContext(ProductContext);
 
   const fetchShopLocations = async () => {
@@ -20,6 +21,9 @@ const SettingsPage = () => {
         const { data } = await Axios(`/user/fetchAllLocation?location=${locationtext}`);
         console.log("Locations:", data);
         setLocationArray(data.locations || []);
+        if (data.locations.length === 0) {
+          setTrySearch(true)
+        }
       }
     } catch (error) {
       console.error("Error fetching locations:", error);
@@ -48,19 +52,27 @@ const SettingsPage = () => {
   }, [locationtext]);
 
   return (
-    <div className="w-full h-screen flex justify-center items-center bg-gradient-to-r from-blue-100 to-indigo-200">
-      <div className="bg-white p-6 rounded-xl shadow-xl w-[420px]">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          <MdLocationOn className="text-blue-600 text-2xl" />
-          Select Your Location
-        </h2>
+    <div className={`w-full h-screen flex justify-center items-center ${dark ? "bg-[#141414] text-white" : "bg-gray-100 text-black"} `}>
+      <div className={`w-full   max-w-4xl p-6 rounded-lg mt-7 flex flex-col ${dark ? "bg-[#0F0F0F]" : "bg-white"}  `}>
+        <div className='flex justify-between  items-center mb-5'>
+          <p className="text-xl font-semibold   flex items-center gap-2">
+            
+            Select Your Location
+          </p>
+          {isAuth && user?.locationName && (
+            <p className=" text-xl ">
+              <MdLocationOn className="inline-block  text-lg mr-1" />
+              <strong>{user.locationName}</strong>
+            </p>
+          )}
+        </div>
 
-        <div className="relative w-full">
-          <div className="flex items-center border border-gray-300 rounded-lg p-2 bg-gray-100">
-            <FiMapPin className="text-gray-600 text-xl mr-2" />
+        <div className="relative w-full ">
+          <div className="flex items-center border border-gray-300 rounded-lg p-2 ">
+            <FiMapPin className=" text-xl mr-2" />
             <input
               id="location-search"
-              className="w-full bg-transparent outline-none text-gray-700"
+              className={`w-full bg-transparent outline-none text-gray-700 ${dark ? "placeholder-white text-white" : "placeholder-black text-black"}`}
               placeholder="Search location..."
               type="text"
               value={locationtext}
@@ -69,22 +81,18 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        {isAuth && user?.locationName && (
-          <p className="mt-3 text-sm text-gray-700">
-            <MdLocationOn className="inline-block text-blue-500 text-lg mr-1" />
-            Your current location: <strong>{user.locationName}</strong>
-          </p>
-        )}
+
 
         <div className="mt-3">
           {locationArray.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center mt-2">No locations found</p>
+            trysearch &&
+            <div></div>
           ) : (
-            <ul className="bg-white border border-gray-300 rounded-lg mt-3 shadow-md overflow-hidden">
+            <ul className=" h-max-[200px] border border-gray-300 rounded-lg mt-3 shadow-md overflow-y-scroll hide-scrollbar">
               {locationArray.map((item, index) => (
                 <li
                   key={index}
-                  className="flex items-center p-3 hover:bg-blue-100 cursor-pointer transition-all duration-200"
+                  className={`flex items-center p-3 ${dark ? "hover:bg-gray-900 " : "hover:bg-blue-100 "} cursor-pointer transition-all duration-200`}
                   onClick={() => updateUserLocation(item)}
                 >
                   <MdLocationOn className="text-blue-500 text-lg mr-2" />

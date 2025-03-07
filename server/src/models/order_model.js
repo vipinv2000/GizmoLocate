@@ -20,6 +20,10 @@ const OrderSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
+    orderReady:{
+      type:Boolean,
+      default:false
+    },
     products: [{
       productId: {
         type: Schema.Types.ObjectId,

@@ -6,7 +6,7 @@ const notificationSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
-    messages: [{    
+    messages: [{
         notification: {
             type: String,
             required: true
@@ -14,6 +14,10 @@ const notificationSchema = new mongoose.Schema({
         dateTime: {
             type: Date,
             default: Date.now
+        },
+        isorder: {
+            type: Boolean,
+            default: false
         }
     }],
     isViewed: {

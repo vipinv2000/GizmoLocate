@@ -352,7 +352,7 @@ export const PlaceOrders = async (req, res) => {
 
     await order.save();
 
-    userNotify(userId, `Your order for ${productname} has been successfully placed! We appreciate your trust in us. Wishing you a wonderful day! ✨`)
+    userNotify(userId, `Your order for ${productname} has been successfully placed! We appreciate your trust in us. Wishing you a wonderful day! ✨`,true)
 
     await Cart.deleteOne({ user: userId });
 

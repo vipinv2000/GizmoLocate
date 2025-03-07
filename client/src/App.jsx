@@ -26,20 +26,19 @@ import Admin_root from './components/Admin/Admin_root.jsx';
 import ShopSignUp from './components/shops/signUp.jsx';
 
 const App = () => {
-  const { name, user, isAuth, isadmin,isShopAuth } = useContext(AppContext);
+  const { name, user, isAuth, isadmin, isShopAuth } = useContext(AppContext);
   console.log(isAuth);
   return (
     <>
       <Routes>
-        <Route path="/shop/home" element={<ShopHome />} />
-        <Route
-          path="/shop/signup"
-          element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopSignUp />}
-        />
-        <Route
-          path="/shop/login"
-          element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopLogin />}
-        />
+      <Route path="/shop/signup" element={isShopAuth ? <Navigate to="/shop/login" /> : <ShopSignUp />} />
+      <Route path="/shop/login" element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopLogin />} />
+
+        <Route path='/shop'>
+          <Route index element={isShopAuth?<ShopHome />:<Navigate to="/shop/login"/>} />
+          <Route path="/shop/home" element={isShopAuth?<ShopHome />:<Navigate to="/shop/login"/>} />
+       
+        </Route>
 
 
         <Route
@@ -51,11 +50,11 @@ const App = () => {
           element={isAuth ? <Navigate to="/user/home" /> : <UserLogin />}
         />
 
-        <Route path='/user' element={<ProductContextProvider> <UserBasePage /> </ProductContextProvider>}>
+        <Route path='/user' element={isAuth?<ProductContextProvider> <UserBasePage /> </ProductContextProvider>:<Navigate to="/user/login"/>}>
           {/* Default route when /user is accessed */}
           <Route index element={<UserHome />} />
 
-          <Route path="home" element={<UserHome />} />
+          <Route path="home" element={isAuth?<UserHome />:<Navigate to="/user/login"/>} />
           <Route path="profile" element={<Profile_page />} />
           <Route path="orders" element={<View_orders />} />
           <Route path="viewCart" element={<CartContextProvider> <ViewCart /> </CartContextProvider>} />

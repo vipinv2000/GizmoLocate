@@ -10,7 +10,7 @@ export const AppContextProvider = ({ children }) => {
   const [shop, setShop] = useState(null);
   const [isShopAuth, setIsShopAuth] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
-  const [user, setUser] = useState(null); // Initialize with null for clarity
+  const [user, setUser] = useState(null);
   const [toggleMenu, setToggleMenu] = useState(true);
   const [ennableSearchbar, setEnnablesearchBar] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
@@ -19,6 +19,8 @@ export const AppContextProvider = ({ children }) => {
   const [notification, setNotifications] = useState({})
   const [isadmin, setIsAdmin] = useState(false)
   const [selectedtab, setSelectedTab] = useState(0)
+  const [dark,setDark] = useState(false)
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -132,7 +134,9 @@ export const AppContextProvider = ({ children }) => {
     isadmin,
     setIsAdmin,
     selectedtab,
-    setSelectedTab
+    setSelectedTab,
+    dark,
+    setDark
 
   };
 

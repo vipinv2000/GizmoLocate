@@ -70,12 +70,9 @@ const ShopSignUp = () => {
 
     try {
       const { data } = await Axios.post('/shop/signUp', finalData);
-        if (data.success) {
-            setIsShopAuth(true)
-          setShop(data.shop)
-        }
+        
 
-      navigate('/shop/home');
+      navigate('/shop/login');
       toast.success('Account created successfully!');
       console.log('Shop Data:', data);
       console.log('Shop ffData:', formData);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import {
   Plus,
   Package,
@@ -41,8 +41,11 @@ import { useNavigate } from 'react-router-dom';
 import OrdersChart from '../Chart';
 import { FaMoneyBillWave } from 'react-icons/fa';
 import LogoutButton from '../logout';
+import { AppContext } from '../../context/AppContext.jsx';
 
 const ShopHome = () => {
+
+  
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [productimage, setProductImage] = useState('');
@@ -78,6 +81,8 @@ const ShopHome = () => {
   const ordersRef = useRef(null);
   const usersRef = useRef(null);
   const fullfillRef = useRef(null);
+
+  const {setIsShopAuth,setShop}=useContext(AppContext)
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -157,6 +162,20 @@ const ShopHome = () => {
   };
 
   const Navigate = useNavigate();
+
+  const logoutonClick=async()=>{
+   try {
+    await Axios.post('/shop/logout')
+    Navigate('/shop/login')
+    setIsShopAuth(false);
+          setShop(null);
+    toast.success("Logged out successfully")
+   } catch (e) {
+    toast.error("Error")
+   }
+    
+   
+  }
 
   const handleImageChange = e => {
     const file = e.target.files[0];
@@ -391,7 +410,7 @@ const ShopHome = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className='absolute left-4'onClick={()=>{}} ><LogoutButton/></div>
+      <div className='absolute left-4'onClick={logoutonClick} ><LogoutButton/></div>
         <div
           className={`flex justify-between items-center mb-8 transition-all duration-500 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'

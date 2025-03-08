@@ -10,7 +10,7 @@ export const AppContextProvider = ({ children }) => {
   const [shop, setShop] = useState(null);
   const [isShopAuth, setIsShopAuth] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
-  const [user, setUser] = useState(null); // Initialize with null for clarity
+  const [user, setUser] = useState(null);
   const [toggleMenu, setToggleMenu] = useState(true);
   const [ennableSearchbar, setEnnablesearchBar] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
@@ -19,7 +19,7 @@ export const AppContextProvider = ({ children }) => {
   const [notification, setNotifications] = useState({})
   const [isadmin, setIsAdmin] = useState(false)
   const [selectedtab, setSelectedTab] = useState(0)
-  const [dark,setDark] = useState(true)
+  const [dark,setDark] = useState(false)
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,7 +29,7 @@ export const AppContextProvider = ({ children }) => {
     try {
       if (location.pathname.startsWith('/shop')) {
         // If visiting a shop-related page, check shop authentication
-        const { data } = await Axios.get('shop/shopviewauth');
+        const { data } = await Axios.get('/shop/shopviewauth');
         if (data.success) {
           setIsShopAuth(true);
           setShop(data.Shop);
@@ -40,7 +40,7 @@ export const AppContextProvider = ({ children }) => {
         }
       } else {
         // Otherwise, check user authentication
-        const { data } = await Axios.get('user/userViewAuth');
+        const { data } = await Axios.get('/user/userViewAuth');
         if (data.success) {
           setIsAuth(true);
           setUser(data.User);

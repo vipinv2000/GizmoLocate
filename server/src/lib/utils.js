@@ -66,7 +66,7 @@ export const calculate_total_from_userCart = (cartItem) => {
 
 }
 
-export const adminSignUp = async (req, res, next) => {
+export const adminSignUp = async () => {
   console.log("Calling");
 
 
@@ -81,5 +81,6 @@ export const adminSignUp = async (req, res, next) => {
       password: "123456"
     })
   }
-  next()
+ 
+  
 }

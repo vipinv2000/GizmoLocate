@@ -133,7 +133,7 @@ const ViewCart = () => {
                                             <p className="text-[14px]  italic flex gap-3"> {user.locationName}</p>
                                         </div>
                                         <div className=" w-[20%] flex justify-end italic">
-                                            <p className="text-blue-600 cursor-pointer"><u>Edit</u></p>
+                                            <p className="text-blue-600 cursor-pointer" onClick={()=>navigate('/user/settings')}><u>Edit</u></p>
                                         </div>
                                     </>
                                 )

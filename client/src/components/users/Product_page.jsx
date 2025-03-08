@@ -71,7 +71,7 @@ const Product_page = () => {
   }
   //[#292f3f]
   return (
-    <div className={`w-full h-[98%]  flex items-center justify-center pb-8 ${dark ? "bg-[#141414]" : "bg-white"}`}>
+    <div className={`w-full h-[98%]  flex items-center justify-center pb-8 ${dark ? "bg-[#141414]" : "bg-white"} `}>
       <div className={`w-[80%] h-[700px]  p-16 rounded-xl ${dark ? "bg-[#0F0F0F] shadow-[0px_4px_6px_rgba(35,35,35,0.5)]" : "shadow-lg"} `} >
         <div className={`w-full h-full  rounded-xl flex ${dark ? "shadow-[0px_4px_6px_rgba(150,150,150,0.5)] text-white" : "shadow-2xl text-black border border-gray-100"}`}>
           <div className={`flex items-center justify-center w-[40%] h-full ${dark ? "bg-[#171717] shadow-[0px_4px_6px_rgba(50,50,50,0.5)]" : "bg-gray-200"}  rounded-xl shadow-2xl `} style={{ borderTopRightRadius: "50%", borderBottomRightRadius: "50%" }}
@@ -79,7 +79,7 @@ const Product_page = () => {
             <img
               src={singleProduct.productimage}
               alt={singleProduct.productname}
-              className="w-[80%] h-full object-contain "
+              className="w-[80%] h-[60%] object-contain  "
 
             />
           </div>

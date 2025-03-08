@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 const Profile_page = () => {
     const [recentOrders, setRecentOrders] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
+    const [topShops, setTopShops] = useState([])
     const { user, dark } = useContext(AppContext);
     const navigate = useNavigate()
 
@@ -16,6 +17,7 @@ const Profile_page = () => {
         if (user) {
             setCurrentUser(user);
             fetchRecentOrders();
+            fetcH_TOp_shops()
         }
     }, [user]);
 
@@ -24,9 +26,20 @@ const Profile_page = () => {
             const { data } = await Axios.get('/user/recentOrder');
             setRecentOrders(data?.order?.shopProduct || []);
         } catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong!");
+            console.log(error.response?.data?.message || "Something went wrong!");
         }
     };
+
+    const fetcH_TOp_shops = async () => {
+        try {
+            const { data } = await Axios.get('/user/topShops');
+            //console.log("Toppppp Shoppp", data.topShops);
+            setTopShops(data.topShops)
+
+        } catch (error) {
+            console.log(error.response?.data?.message || "Something went wrong!");
+        }
+    }
 
     return (
         <div className={`w-full h-screen p-6 ${dark ? " bg-[#0F0F0F]" : "bg-white"}`}>
@@ -47,8 +60,8 @@ const Profile_page = () => {
                         <h1 className="text-2xl font-bold">{currentUser?.fullName}</h1>
                         <p >Member since {new Date(currentUser?.createdAt).toLocaleDateString()}</p>
                     </div>
-                    <button onClick={()=>navigate('/user/settings')} className={`px-4 py-2 ${dark ? "bg-white  text-black hover:bg-gray-300" : "bg-gray-800 hover:bg-gray-700 text-white"}  rounded-lg  flex items-center`}>
-                        <Edit  className="h-4 w-4 mr-2" /> Edit Profile
+                    <button onClick={() => navigate('/user/settings')} className={`px-4 py-2 ${dark ? "bg-white  text-black hover:bg-gray-300" : "bg-gray-800 hover:bg-gray-700 text-white"}  rounded-lg  flex items-center`}>
+                        <Edit className="h-4 w-4 mr-2" /> Edit Profile
                     </button>
                 </div>
             </div>
@@ -92,27 +105,32 @@ const Profile_page = () => {
                         <div className={`p-6 border-b ${dark ? "border-[#131313]" : "border-gray-100 "} flex justify-between `}>
                             <h2 className="text-lg font-semibold ">Recent Orders</h2>
                             <motion.div animate={{ y: [0, 5, 0] }} transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}>
-                                <ChevronsDown size={32} className=""/>
+                                <ChevronsDown size={32} className="" />
                             </motion.div>
                         </div>
                         <div className={`divide-y rounded-xl ${dark ? "divide-[#131313]" : "divide-gray-200"} h-[280px] overflow-y-scroll hide-scrollbar`}>
-                            {recentOrders.map(order => (
-                                order.products.map(pro => (
-                                    <div key={pro.productId._id} className="p-6 flex items-center justify-between">
-                                        <div>
-                                            <p className="font-medium ">{pro.productId.productname}</p>
-                                            <p className="text-sm text-gray-500">{pro.date}</p>
+                            {recentOrders.length > 0 ? (
+                                recentOrders.map(order =>
+                                    order.products.map(pro => (
+                                        <div key={pro.productId._id} className="p-6 flex items-center justify-between">
+                                            <div>
+                                                <p className="font-medium">{pro.productId.productname}</p>
+                                                <p className="text-sm text-gray-500">{pro.date}</p>
+                                            </div>
+                                            <div className="flex items-center space-x-4">
+                                                <span className="text-sm font-medium">₹ {pro.productId.price}</span>
+                                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${order.isDelivered ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                    {order.isDelivered ? "Delivered" : "Pending"}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center space-x-4">
-                                            <span className="text-sm font-medium ">₹ {pro.productId.price}</span>
-                                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${order.isDelivered ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                {order.isDelivered ? "Delivered" : "Pending"}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))
-                            ))}
+                                    ))
+                                )
+                            ) : (
+                                <p className="text-center text-gray-500 py-6">No recent orders found.</p>
+                            )}
                         </div>
+
                     </div>
                 </div>
 
@@ -124,9 +142,22 @@ const Profile_page = () => {
                         }`}>
                         <h2 className="text-5xl font-bold  mb-6">Top Shops</h2>
                         <div className="space-y-4">
-                            <button className={`w-full p-4 rounded-lg border border-gray-200 ${dark ? "hover:bg-[#171717]" : "hover:bg-gray-50"} `}>Shop1</button>
-                            <button className={`w-full p-4 rounded-lg border border-gray-200 ${dark ? "hover:bg-[#171717]" : "hover:bg-gray-50"} `}>Shop2</button>
-                            <button className={`w-full p-4 rounded-lg border border-gray-200 ${dark ? "hover:bg-[#171717]" : "hover:bg-gray-50"} `}>Shop3</button>
+                            {
+                                topShops.length != 0 ? (topShops.map(item => (
+                                    <button className={`flex justify-between w-full p-4 rounded-lg border border-gray-200 ${dark ? "hover:bg-[#171717]" : "hover:bg-gray-50"} `}>
+                                        <span>{item.shopname}</span>
+                                        <span className='text-gray-500'>{item.num}</span>
+                                          
+                                    </button>
+                                ))) : (
+                                    <p>
+                                        No Shops Found
+                                    </p>
+                                )
+
+                            }
+
+
                         </div>
                     </div>
                 </div>

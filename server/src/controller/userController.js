@@ -351,7 +351,6 @@ export const PlaceOrders = async (req, res) => {
     });
 
     await order.save();
-
     userNotify(userId, `Your order for ${productname} has been successfully placed! We appreciate your trust in us. Wishing you a wonderful day! ✨`
       , true
     )
@@ -891,6 +890,42 @@ export const UpdateProfile = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+export const topShops = async (req, res) => {
+  const userId = req.user._id;
+
+  try {
+    // Fetch user orders and populate shop details
+    const orders = await Order.find({ user: userId }).populate('shopProduct.shopId');
+
+    // Count occurrences of each shop
+    const shopCount = orders.reduce((acc, order) => {
+      order.shopProduct.forEach(({ shopId }) => {
+        if (shopId) { // Ensure shopId exists
+          const shopName = shopId.shopname; // Get shop name
+          const existingShop = acc.find(shop => shop.shopname === shopName);
+
+          if (existingShop) {
+            existingShop.num += 1;
+          } else {
+            acc.push({ shopname: shopName, num: 1 });
+          }
+        }
+      });
+      return acc;
+    }, []);
+
+    // Sort by num (count) in descending order and pick top 5
+    const sortedShops = shopCount.sort((a, b) => b.num - a.num).slice(0, 5);
+
+    return res.status(200).json({ success: true, topShops: sortedShops });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 
 
 

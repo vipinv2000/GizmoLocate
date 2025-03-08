@@ -29,7 +29,8 @@ import {
   togglenotification,
   recentOrder,
   verfyUpdateProfile,
-  UpdateProfile
+  UpdateProfile,
+  topShops
 } from '../controller/userController.js';
 
 const router = express.Router();
@@ -83,5 +84,7 @@ router.get('/recentOrder',UserPrivateRoute,recentOrder)
 
 router.post('/verfyUpdateProfile',UserPrivateRoute,verfyUpdateProfile)
 router.post('/UpdateProfile',UserPrivateRoute,UpdateProfile)
+
+router.get('/topShops',UserPrivateRoute,topShops)
 
 export default router;

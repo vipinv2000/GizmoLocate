@@ -57,6 +57,7 @@ const User_Sidebar = () => {
 
             <div className={`absolute bottom-6 w-full ${toggleMenu && "px-6"}  flex items-center justify-center`}>
                 <button onClick={logoutsession} className={`cursor-pointer ${dark ? "text-white" :"text-black"} w-full flex items-center ${!toggleMenu && 'justify-center'} `}>
+
                     <LogOut className="h-5 sm:w-5 w-20 mr-3" />
 
                     {

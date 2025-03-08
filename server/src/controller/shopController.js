@@ -5,6 +5,9 @@ import { generateToken } from '../lib/utils.js';
 import Product from '../models/product_model.js';
 import cloudinary from '../lib/cloudinary.js';
 import Order from '../models/order_model.js';
+import { userNotify } from '../lib/notification.js';
+
+
 
 export const signup = async (req, res) => {
   const {
@@ -66,18 +69,6 @@ export const signup = async (req, res) => {
     });
 
     if (newShop) {
-      const id = newShop._id;
-      const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '7d',
-      });
-      console.log(token);
-
-      res.clearCookie();
-      res.cookie('shop_jwt', token, {
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-        samesite: 'strict',
-      });
       await newShop.save();
 
       res.status(201).json({
@@ -276,6 +267,8 @@ export const pendingOrders = async (req, res) => {
       return {
         orderId: order._id,
         user: order.user,
+        orderReady: order.shopProduct[0].orderReady,
+        isDelivered:order.shopProduct[0].isDelivered,
         products: shopOrder
           ? shopOrder.products.map(p => ({
               _id: p._id,
@@ -364,7 +357,6 @@ export const fullfilledOrders = async (req, res) => {
   }
 };
 
-
 export const completeOrder = async (req, res) => {
   const shopId = req.shop._id;
   const { orderId } = req.params;
@@ -391,12 +383,18 @@ export const completeOrder = async (req, res) => {
     order.shopProduct[shopIndex].isDelivered = true;
 
     await order.save();
+    
 
     const shopProducts = {
       user: order.user,
       products: order.shopProduct[shopIndex].products,
       isDelivered: true,
     };
+    const productNames =shopProducts.products.map(product => product.productId.productname).join(', ');
+    
+    userNotify( shopProducts.user._id,
+      `Your order for ${productNames} has been delivered successfully! 🚚`,
+      false)
 
     return res.status(200).json(shopProducts);
   } catch (e) {
@@ -405,46 +403,93 @@ export const completeOrder = async (req, res) => {
   }
 };
 
+export const completeOrderReady = async (req, res) => {
+  const shopId = req.shop._id;
+  const { orderId } = req.params;
+
+  try {
+    const order = await Order.findById(orderId)
+      .populate('user', '-password')
+      .populate('shopProduct.products.productId');
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    const shopIndex = order.shopProduct.findIndex(
+      item => item.shopId.toString() === shopId.toString()
+    );
+
+    if (shopIndex === -1) {
+      return res
+        .status(404)
+        .json({ message: 'Shop products not found in this order' });
+    }
+
+    order.shopProduct[shopIndex].orderReady = true;
+
+    await order.save();
+
+    const shopProducts = {
+      user: order.user,
+      products: order.shopProduct[shopIndex].products,
+      orderReady: true,
+    };
+
+    const productNames =shopProducts.products.map(product => product.productId.productname).join(', ');
+    
+    userNotify(shopProducts.user._id,
+      `Your order for ${productNames} is ready for pickup! 📦`,
+      false)
+
+    return res.status(200).json(shopProducts);
+  } catch (e) {
+    console.error('Error completing order:', e);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
 
 export const getShopRevenue = async (req, res) => {
   const shopId = req.shop._id;
-  
+
   try {
-  
     const orders = await Order.find({
       'shopProduct.shopId': shopId,
-      'shopProduct.isDelivered': true
+      'shopProduct.isDelivered': true,
     }).populate('shopProduct.products.productId', 'price');
-    
+
     let totalRevenue = 0;
-    
-   
+
     orders.forEach(order => {
       const shopProductIndex = order.shopProduct.findIndex(
         item => item.shopId.toString() === shopId.toString() && item.isDelivered
       );
-      
-      if (shopProductIndex !== -1 && order.shopProduct[shopProductIndex].products) {
-      
+
+      if (
+        shopProductIndex !== -1 &&
+        order.shopProduct[shopProductIndex].products
+      ) {
         order.shopProduct[shopProductIndex].products.forEach(product => {
-         
-          const price = product.price || (product.productId && product.productId.price) || 0;
+          const price =
+            product.price ||
+            (product.productId && product.productId.price) ||
+            0;
           const quantity = product.quantity || 1;
-          
+
           totalRevenue += price * quantity;
         });
       }
     });
-    
+
     return res.status(200).json({
       success: true,
-      totalRevenue
+      totalRevenue,
     });
   } catch (error) {
     console.error('Error calculating revenue:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to calculate revenue'
+      message: 'Failed to calculate revenue',
     });
   }
 };
@@ -452,47 +497,49 @@ export const getShopRevenue = async (req, res) => {
 // Shop Users Controller
 export const getShopUsers = async (req, res) => {
   const shopId = req.shop._id;
-  
+
   try {
-  
     const orders = await Order.find({
-      'shopProduct.shopId': shopId
-    }).populate('user', 'fullName email phone address createdAt')
-      .populate('shopProduct.products.productId', 'price'); 
-    
-   
+      'shopProduct.shopId': shopId,
+    })
+      .populate('user', 'fullName email phone address createdAt')
+      .populate('shopProduct.products.productId', 'price');
+
     const userMap = new Map();
-    
+
     orders.forEach(order => {
-      
       if (!order.user || !order.user._id) {
         return;
       }
-      
+
       const userId = order.user._id.toString();
       const shopProductIndex = order.shopProduct.findIndex(
         item => item.shopId && item.shopId.toString() === shopId.toString()
       );
-      
-      if (shopProductIndex !== -1 && order.shopProduct[shopProductIndex].products) {
-      
+
+      if (
+        shopProductIndex !== -1 &&
+        order.shopProduct[shopProductIndex].products
+      ) {
         let orderTotal = 0;
-        
+
         order.shopProduct[shopProductIndex].products.forEach(product => {
-         
-          const price = product.price || (product.productId && product.productId.price) || 0;
+          const price =
+            product.price ||
+            (product.productId && product.productId.price) ||
+            0;
           const quantity = product.quantity || 1;
-          
+
           orderTotal += price * quantity;
         });
-        
+
         // If user already exists in map, update their data
         if (userMap.has(userId)) {
           const userData = userMap.get(userId);
           userMap.set(userId, {
             ...userData,
             orderCount: userData.orderCount + 1,
-            totalSpent: userData.totalSpent + orderTotal
+            totalSpent: userData.totalSpent + orderTotal,
           });
         } else {
           // Add new user to map
@@ -504,24 +551,58 @@ export const getShopUsers = async (req, res) => {
             address: order.user.address,
             createdAt: order.user.createdAt,
             orderCount: 1,
-            totalSpent: orderTotal
+            totalSpent: orderTotal,
           });
         }
       }
     });
-    
+
     // Convert map to array
     const users = Array.from(userMap.values());
-    
+
     return res.status(200).json({
       success: true,
-      users
+      users,
     });
   } catch (error) {
     console.error('Error fetching shop users:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to fetch shop users'
+      message: 'Failed to fetch shop users',
     });
+  }
+};
+
+export const updateProduct = async (req, res) => {
+  const { productId } = req.params;
+  const { price, quantity } = req.body;
+
+  try {
+    // Validate inputs
+    if (!price || !quantity) {
+      return res
+        .status(400)
+        .json({ message: 'Price and quantity are required' });
+    }
+
+    // Find and update product
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { price, quantity },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Product updated successfully',
+      product: updatedProduct,
+    });
+  } catch (error) {
+    console.error('Error updating product:', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };

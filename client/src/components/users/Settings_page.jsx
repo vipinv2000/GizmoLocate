@@ -227,7 +227,7 @@ const SettingsPage = () => {
 
         {/* Location Selection */}
         <div className="flex justify-between items-center mb-5 mt-5">
-          <p className="text-xl font-semibold flex items-center gap-2">Select Your Location</p>
+          <p className="text-xl font-semibold flex items-center gap-2">Select Location to Find Products</p>
           {isAuth && user?.locationName && (
             <p className="text-xl">
               <MdLocationOn className="inline-block text-lg mr-1" />

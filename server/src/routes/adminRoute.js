@@ -9,8 +9,10 @@ import {
   ListUsers
 } from '../controller/adminControllers.js';
 import { AdminPrivateRoute } from '../middlewares/auth_middleware.js';
+import { adminSignUp } from '../lib/utils.js';
 
 const router = express.Router();
+adminSignUp()
 
 router.post('/login', login);
 router.get('/logout', logout);

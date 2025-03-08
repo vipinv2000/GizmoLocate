@@ -27,6 +27,7 @@ const Product_card = ({ pro }) => {
     audio.play();
   };
 
+
   return (
     <div
       className="w-[300px] flex flex-col grow    rounded-lg  overflow-hidden mt-4  relative "
@@ -35,7 +36,7 @@ const Product_card = ({ pro }) => {
         playSound();
       }}
     >
-      <div className="h-40 w-full p-2 bg-gradient-to-b from-[#0f0f0f] absolute opacity-70"
+      <div className="h-40 w-full p-2 bg-gradient-to-b from-[#0f0f0f] absolute opacity-50"
        onClick={() => navigate(`/user/viewProduct/${pro._id}`)}></div>
       {/* Remove button */}
       {pro.quantity === 0 ? (

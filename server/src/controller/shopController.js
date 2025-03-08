@@ -6,7 +6,7 @@ import Product from '../models/product_model.js';
 import cloudinary from '../lib/cloudinary.js';
 import Order from '../models/order_model.js';
 import { userNotify } from '../lib/notification.js';
-import { FaBoxOpen, FaShoppingCart, FaTruck } from "react-icons/fa";
+
 
 
 export const signup = async (req, res) => {

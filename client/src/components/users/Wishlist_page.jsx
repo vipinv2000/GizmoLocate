@@ -9,14 +9,14 @@ const WishlistPage = () => {
   const [wishList, setWishList] = useState([]);
   const [loading, setLoading] = useState(true);
   const { setwidhListToggle, wishlistToggle } = useContext(ProductContext);
-  const {dark} = useContext(AppContext)
+  const { dark } = useContext(AppContext)
   const navigate = useNavigate()
 
   const fetchWishList = async () => {
     try {
       const { data } = await Axios.get('/user/mywishlist');
-      console.log("Wish Item",data);
-      
+      console.log("Wish Item", data);
+
       setWishList(data);
     } catch (error) {
       console.error("Error fetching wishlist:", error);
@@ -63,8 +63,14 @@ const WishlistPage = () => {
                 <img src={item.productimage} alt={item.productname} className="w-full h-40 object-cover" />
                 <div className="h-full p-4 text-center flex flex-col gap-1 items-center">
                   <p className='text-xs tracking-widest' style={{ letterSpacing: "7px" }}>{item.productType}</p>
-                  <p className="text-lg font-semibold text-[33px]">{item.productname}</p>
-                  <div className='bg-black h-[1px] w-[30%]'></div>
+                  <p className="text-lg font-semibold text-[23px]" style={{
+                 
+                    display: '-webkit-box',
+                    WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}>{item.productname}</p>
+                  <div className='bg-black h-[1px]s w-[30%]'></div>
                   <p className="text-lg font-semibold text-[13px] italic mt-2">{item.modelnumber}</p>
                   <p className=" text-sm italic" style={{
                     fontSize: '10px',

@@ -8,6 +8,7 @@ export const ProductContextProvider = ({ children }) => {
     const [showProducts, setShowProducts] = useState([])
     const [productsHistory, setProductsHistory] = useState([])
     const [wishlistToggle,setwidhListToggle] = useState(false)
+    const [restart,setRestart] = useState(false)
 
     const StorePrevSearcHProducts = (key, searchedProduct) => {
         setProductsHistory({
@@ -31,7 +32,7 @@ export const ProductContextProvider = ({ children }) => {
 
     useEffect(() => {
         fetchProductforDisplay()
-    }, [wishlistToggle])
+    }, [wishlistToggle,restart])
 
     const value = {
         fetchedProducts,
@@ -41,7 +42,8 @@ export const ProductContextProvider = ({ children }) => {
         StorePrevSearcHProducts,
         productsHistory,
         setwidhListToggle,
-        wishlistToggle
+        wishlistToggle,
+        restart,setRestart
     }
 
     return (

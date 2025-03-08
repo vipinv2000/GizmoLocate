@@ -29,7 +29,7 @@ export const AppContextProvider = ({ children }) => {
     try {
       if (location.pathname.startsWith('/shop')) {
         // If visiting a shop-related page, check shop authentication
-        const { data } = await Axios.get('shop/shopviewauth');
+        const { data } = await Axios.get('/shop/shopviewauth');
         if (data.success) {
           setIsShopAuth(true);
           setShop(data.Shop);
@@ -40,7 +40,7 @@ export const AppContextProvider = ({ children }) => {
         }
       } else {
         // Otherwise, check user authentication
-        const { data } = await Axios.get('user/userViewAuth');
+        const { data } = await Axios.get('/user/userViewAuth');
         if (data.success) {
           setIsAuth(true);
           setUser(data.User);

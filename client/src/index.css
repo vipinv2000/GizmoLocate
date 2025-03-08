@@ -14,5 +14,21 @@ p {
 .hide-scrollbar::-webkit-scrollbar {
     display: none;
     /* Hide scrollbar for Chrome, Safari */
-  
+
+}
+
+@keyframes upDown {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.up-down-animation {
+    animation: upDown 1.5s ease-in-out infinite;
 }

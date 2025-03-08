@@ -5,6 +5,7 @@ import { Axios } from "../../utils/Axiox";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../context/AppContext";
+import { ProductContext } from "../../context/ProductContext";
 
 const ViewCart = () => {
 
@@ -12,6 +13,7 @@ const ViewCart = () => {
     const [discountCode, setDiscountCode] = useState(false)
     const { cartedItem, total = 0, refreshContext, setRefreshContext } = useContext(Cartcontext);
     const { cartCount, setCartcount, refresh, setRefresh, user,dark } = useContext(AppContext)
+     const {restart,setRestart} = useContext(ProductContext)
     const navigate = useNavigate();
     const [paymentMethod, setPaymentMethod] = useState("cod");
 
@@ -39,6 +41,7 @@ const ViewCart = () => {
             toast.error("Failed to remove product. Please try again.");
         } finally {
             setRefreshContext(!refreshContext);
+            setRestart(!restart)
         }
     };
 
@@ -130,7 +133,7 @@ const ViewCart = () => {
                                             <p className="text-[14px]  italic flex gap-3"> {user.locationName}</p>
                                         </div>
                                         <div className=" w-[20%] flex justify-end italic">
-                                            <p className="text-blue-600 cursor-pointer"><u>Edit</u></p>
+                                            <p className="text-blue-600 cursor-pointer" onClick={()=>navigate('/user/settings')}><u>Edit</u></p>
                                         </div>
                                     </>
                                 )

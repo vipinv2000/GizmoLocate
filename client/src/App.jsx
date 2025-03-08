@@ -24,6 +24,7 @@ import ListShops from './components/Admin/ListShops.jsx';
 import ListUsers from './components/Admin/ListUsers.jsx';
 import Admin_root from './components/Admin/Admin_root.jsx';
 import ShopSignUp from './components/shops/signUp.jsx';
+import First_page from './components/First_page.jsx';
 
 const App = () => {
   const { name, user, isAuth, isadmin, isShopAuth } = useContext(AppContext);
@@ -31,8 +32,11 @@ const App = () => {
   return (
     <>
       <Routes>
+        <Route path='/' element={<First_page />}></Route>
+
       <Route path="/shop/signup" element={isShopAuth ? <Navigate to="/shop/login" /> : <ShopSignUp />} />
       <Route path="/shop/login" element={isShopAuth ? <Navigate to="/shop/home" /> : <ShopLogin />} />
+
 
         <Route path='/shop'>
           <Route index element={isShopAuth?<ShopHome />:<Navigate to="/shop/login"/>} />
@@ -68,6 +72,7 @@ const App = () => {
 
         {/* Protected Admin Routes */}
         <Route path="/admin" element={<Admin_root />}>
+          <Route index element={<AcceptShops />} />
           <Route path="accept-shops" element={<AcceptShops />} />
           <Route path="view-shops" element={<ListShops />} />
           <Route path="view-users" element={<ListUsers />} />
